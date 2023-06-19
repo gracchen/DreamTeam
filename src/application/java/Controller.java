@@ -1,4 +1,4 @@
-package application;
+package application.java;
 
 import java.io.IOException;
 
@@ -23,7 +23,7 @@ public class Controller {
 	public void handleButtonClick() {
 		System.out.println("Creating new instance of pane-1");
 		try {
-			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("resources/pane-1.fxml"));
+			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/application/resources/pane-1.fxml"));
 			Parent root = (Parent)fxmlLoader.load();          
 			Pane1Controller controller = fxmlLoader.<Pane1Controller>getController();
 			controller.setButton(String.valueOf(i));

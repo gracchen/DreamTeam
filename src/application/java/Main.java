@@ -1,4 +1,4 @@
-package application;
+package application.java;
 	
 import java.io.IOException;
 
@@ -14,7 +14,7 @@ public class Main extends Application {
 	public void start(Stage primaryStage) {
 		Parent root = null;
 		try {
-			root = FXMLLoader.load(getClass().getResource("resources/main-view.fxml"));
+			root = FXMLLoader.load(getClass().getResource("/application/resources/main-view.fxml"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
