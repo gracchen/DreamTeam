@@ -1,5 +1,44 @@
 # DreamTeam
 
+### 6-20-2023
+
+- setting relative dimensions between components:
+	- in fxml:
+
+		```
+		<BorderPane fx:id="stage">;
+			<Button prefWidth="${stage.width*0.7}"&gt; </Button>
+		</BorderPane>
+		```
+
+	- in java:
+		
+		```
+		button.prefWidthProperty().bind(stage.widthProperty());
+		```
+
+- debugging addListeners to any property: 
+
+	```
+	addButton.widthProperty().addListener((ChangeListener<? super Number>) new ChangeListener<Number>() {
+		@Override
+		public void changed(ObservableValue<? extends Number> obs, Number oldVal, Number newVal) {
+			System.out.println(newVal);
+		}
+    });
+	```
+
+- specify border thickness for each side:
+	```
+	label.setStyle("-fx-border-width: 1 2 3 4; -fx-border-color: black;");
+	```
+
+- fixing component not growing beyond preferred dimensions:
+	```
+	HBox.setHgrow(root, Priority.ALWAYS); 
+	```
+
+
 ### 6-19-2023
 
 - quick workaround to failing auto-generate controller code:
@@ -9,11 +48,12 @@
 
 - linking up ids between controller and fxml:
 	- controller:
-
-		&lt;BorderPane fx:controller="application.java.Controller"&gt; 
-			&lt;!--content--&gt; 
-			&lt;Button fx:id="butt" onAction="#buttonClicked" text="Button"/&gt;
-		&lt;/BorderPane&gt;
+		```
+		<BorderPane fx:controller="application.java.Controller"> 
+			<!--content--> 
+			<Button fx:id="butt" onAction="#buttonClicked" text="Button"/>
+		</BorderPane>
+		```
 	- fxml: 
 		```
 		public class Controller {
@@ -37,15 +77,27 @@
 - how to properly organize and link up files in project:
 	- module-info.java ALWAYS in same folder as where class containing main() is. 
 	- update module-info.java for any folders with java files:
+		
 		if java file in src/application/java:
+		
+		```
 		opens applications.java to javafx.fxml, javafx.graphics, ..etc.. ;
+		```
 	- finding controller in fxml:
+
 		if borderPane is overarching component of fxml and controller in src/application/java:
+
+		```
 		<BorderPane fx:controller="application.java.Controller">
+		```
+
 	- finding fxml in java files (abs path starting at src):
+
+		```
 		try {
 			root = FXMLLoader.load(getClass().getResource("/application/resources/main-view.fxml"));
 		} catch (IOException e) {e.printStackTrace();}
+		```
 
 ### 6-18-2023
 

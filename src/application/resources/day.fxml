@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.java.DayController">
+   <top>
+      <Label fx:id="header" text="Label" BorderPane.alignment="CENTER">
+         <font>
+            <Font size="20.0" />
+         </font></Label>
+   </top>
+   <center>
+      <TableView fx:id="tableview" editable="true" BorderPane.alignment="CENTER">
+        <columns>
+          <TableColumn fx:id="taskCol" prefWidth="${tableview.width-30}" reorderable="false" resizable="false" text="Tasks" />
+          <TableColumn fx:id="percentCol" maxWidth="30.0" minWidth="30.0" prefWidth="30.0" reorderable="false" resizable="false" text="\%" />
+        </columns>
+      </TableView>
+   </center>
+   <bottom>
+      <HBox alignment="CENTER" prefHeight="${addButton.height*1.05}" prefWidth="200.0" BorderPane.alignment="CENTER">
+         <children>
+            <Button fx:id="addButton" mnemonicParsing="false" onAction="#addClicked" prefWidth="${tableview.width*0.3}" />
+            <Button fx:id="delButton" mnemonicParsing="false" onAction="#delClicked" prefWidth="${tableview.width*0.3}" />
+         </children>
+      </HBox>
+   </bottom>
+
+</BorderPane>

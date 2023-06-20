@@ -2,35 +2,46 @@ package application.java;
 
 import java.io.IOException;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.control.Label;
-import javafx.scene.layout.GridPane;
+import javafx.scene.control.ListView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 
 public class Controller {
-
-	int i = 0;
-	@FXML
-	private GridPane calendar;
 	
+	String[] weekdays = {"Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"};
+	DayController[] controllers = new DayController[7];
+	
+	@FXML
+	private HBox calendar;
+	@FXML
+	private ListView<String> menu;
 	@FXML
 	private void initialize() {
 		System.out.println("initializing....");
-		calendar.add(new Label("hi"), i, 0);
+		//add 7 instances of pane-1
+		for (int i = 0; i < 7; i++) {
+			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/application/resources/day.fxml"));
+			Parent root = null;
+			try {
+				root = (Parent)fxmlLoader.load();
+			} catch (IOException e) {e.printStackTrace();}          
+			controllers[i] = fxmlLoader.<DayController>getController();
+			controllers[i].setTableName(weekdays[i]);	//names the fxmls so they know which table in charge of
+			calendar.getChildren().add(root);
+			HBox.setHgrow(root, Priority.ALWAYS); //allow tableview to grow if greater than pref dimensions
+		}
+		ObservableList<String> items =FXCollections.observableArrayList (
+			    "Single", "Double", "Suite", "Family App");
+		menu.setItems(items);
 	}
+	
 	@FXML
 	public void handleButtonClick() {
-		System.out.println("Creating new instance of pane-1");
-		try {
-			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/application/resources/pane-1.fxml"));
-			Parent root = (Parent)fxmlLoader.load();          
-			Pane1Controller controller = fxmlLoader.<Pane1Controller>getController();
-			controller.setButton(String.valueOf(i));
-			calendar.add(root, i, 1);
-			//calendar.add(FXMLLoader.load(getClass().getResource("pane-1.fxml")), i, 1);
-		} catch (IOException e) {e.printStackTrace();}
-		//calendar.add(new Label("hi"), i, 1);
-		i++;
+		System.out.println("buttonClick");
 	}
 }

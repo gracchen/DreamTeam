@@ -7,7 +7,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
 
 public class Main extends Application {
 
@@ -19,8 +18,10 @@ public class Main extends Application {
 			e.printStackTrace();
 		}
 		primaryStage.setTitle("Hello World");
-		primaryStage.setScene(new Scene(root, 500, 275));
+		primaryStage.setScene(new Scene(root, 1200, 700));
 		primaryStage.show();
+		primaryStage.setMinWidth(630);	//prevent weird formatting if user resizes too small
+		primaryStage.setMinHeight(400);
 	}
 	
 	public static void main(String[] args) {
