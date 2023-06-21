@@ -1,5 +1,10 @@
 # DreamTeam
 
+### 6-21-2023
+
+- generate automatic setters, getters, and cnostructor for a class:
+	- Right click on code editor --> Source --> Generate ...
+
 ### 6-20-2023
 
 - setting relative dimensions between components:
@@ -7,7 +12,7 @@
 
 		```
 		<BorderPane fx:id="stage">;
-			<Button prefWidth="${stage.width*0.7}"&gt; </Button>
+			<Button prefWidth="${stage.width*0.7}"> </Button>
 		</BorderPane>
 		```
 

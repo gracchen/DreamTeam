@@ -11,7 +11,7 @@
    <top>
       <BorderPane prefHeight="0.0" prefWidth="600.0" BorderPane.alignment="CENTER">
          <top>
-            <Label text="Welcome" BorderPane.alignment="CENTER">
+            <Label text="Dream Team" BorderPane.alignment="CENTER">
                <font><Font size="33.0" /></font>
             </Label>
          </top>
