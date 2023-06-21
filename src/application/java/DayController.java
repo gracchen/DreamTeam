@@ -1,5 +1,7 @@
 package application.java;
 
+import java.sql.SQLException;
+
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
@@ -11,18 +13,19 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.util.converter.IntegerStringConverter;
-
-import java.sql.SQLException;
-
-import application.java.Task;
 
 public class DayController {
 	private Connect c;
+	@FXML
+	private BorderPane dayPane;
     @FXML
     private Label header;
 	private StringProperty tableName;
@@ -38,7 +41,8 @@ public class DayController {
     private TableView<Task> tableview;
 
     ObservableList<Task> list = FXCollections.observableArrayList();
-
+    private Boolean mouseOut = true;
+    
     @FXML
 	private void initialize() {
       //LAYOUT binding
@@ -68,7 +72,6 @@ public class DayController {
 	}
     
     void initTable() {		
-	
     	//set data to display
     	percentCol.setCellValueFactory(new PropertyValueFactory<Task,Integer>("progress"));
     	taskCol.setCellValueFactory(new PropertyValueFactory<Task,String>("name"));
@@ -95,6 +98,8 @@ public class DayController {
     	});
     	
     	tableview.setItems(list);
+    	//allow multi selection for quicker delete
+    	tableview.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     }
     
     void loadData() {
@@ -110,14 +115,45 @@ public class DayController {
     
     @FXML
     void addClicked(ActionEvent event) {
-    	System.out.println("Add clicked! My name is " + tableName.get());
+    	c.runSQL(String.format("insert into %s (name, menuID, progress) values ('','-1','0');", tableName.get()));	
+    	c.runSQL(String.format("select * from %s order by id desc limit 1", tableName.get()));	
+		try {
+			if (c.rs.next()) {
+				list.add(new Task(c.rs.getInt("id"),c.rs.getString("name"), c.rs.getInt("menuID"), c.rs.getInt("progress"), c.rs.getString("link")));
+			}
+		} catch (SQLException e1) {e1.printStackTrace();}
     }
     
     @FXML
     void delClicked(ActionEvent event) {
     	System.out.println("Delete clicked! My name is " + tableName.get());
+    	
+    	ObservableList<Task> selectedItems = tableview.getSelectionModel().getSelectedItems();
+
+    	for (Task task : selectedItems) {
+    	    c.runSQL(String.format("delete from %s where id=%d", tableName.get(), task.getId()));
+    	}
+    	
+    	list.removeAll(selectedItems);
+    }   
+    
+    @FXML
+    void enterDayPane(MouseEvent event) {
+    	mouseOut = false;
     }
     
+    void deselect() {
+    	tableview.getSelectionModel().clearSelection();
+    }
+    
+    @FXML
+    void exitDayPane(MouseEvent event) {
+    	mouseOut = true;
+    }
+    
+    Boolean getMouseOut() {
+    	return mouseOut;
+    }
     void setTableName(String name) {
     	tableName.set(name); //handle for main controller to tell me what table to pull from
     }

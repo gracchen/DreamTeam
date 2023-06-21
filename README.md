@@ -2,8 +2,51 @@
 
 ### 6-21-2023
 
-- generate automatic setters, getters, and cnostructor for a class:
+- to generate automatic setters, getters, and cnostructor for a class:
 	- Right click on code editor --> Source --> Generate ...
+
+- how to configure edit for tableview w/out massive custom tableview:
+	```
+    	//set data to display
+    	percentCol.setCellValueFactory(new PropertyValueFactory<Task,Integer>("progress"));
+    	taskCol.setCellValueFactory(new PropertyValueFactory<Task,String>("name"));
+
+    	//set editable using textfield and built in integer conversion
+    	percentCol.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
+    	taskCol.setCellFactory(TextFieldTableCell.<Task>forTableColumn());
+    	
+		//custom edit code
+    	taskCol.setOnEditCommit(e -> {
+    		c.runSQL("update " + tableName.get() + " set name = \"" + e.getNewValue() + "\" where id = " + e.getRowValue().getId());
+    		loadData();
+    	});
+    	
+    	tableview.setItems(list);
+	```
+
+- detecting mouse clicked inside a component in fxml vs root of a scene:
+	- in fxml: if clicking a component on top of that component, then not count as "clicked"
+	- in root java: clicking anywhere withing the bounds of the scene will trigger your function
+
+- easy way of removing from a tableview:
+	1. get all the row items (not indexes): 
+	
+		```
+		ObservableList<Task> selectedItems = tableview.getSelectionModel().getSelectedItems();
+		```
+	2. loop through all selected items, get id, and delete from sql database:
+	
+		```
+		for (Task task : selectedItems) {
+    	    	c.runSQL(String.format("delete from %s where id=%d", tableName.get(), task.getId()));
+    	}
+		```
+	3. use removeAll builtin to remove from tableview's list: 
+	
+		```
+		list.removeAll(selectedItems);
+		```
+
 
 ### 6-20-2023
 

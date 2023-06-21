@@ -21,8 +21,8 @@
    <center>
       <SplitPane dividerPositions="0.7" orientation="VERTICAL" prefWidth="${stage.width}" BorderPane.alignment="CENTER">
         <items>
-            <HBox fx:id="calendar"/>
-            <ListView fx:id="menu"></ListView>
+            <HBox fx:id="calendar" />
+            <ListView fx:id="menu" />
         </items>
       </SplitPane>
    </center>

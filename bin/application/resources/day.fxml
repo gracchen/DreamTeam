@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.java.DayController">
+<BorderPane fx:id="dayPane" onMouseEntered="#enterDayPane" onMouseExited="#exitDayPane" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.java.DayController">
    <top>
       <Label fx:id="header" text="Label" BorderPane.alignment="CENTER">
          <font>

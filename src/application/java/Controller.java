@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.ListView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import application.java.Connect;
@@ -41,9 +42,25 @@ public class Controller {
 			HBox.setHgrow(root, Priority.ALWAYS); //allow tableview to grow if greater than pref dimensions
 		}
 		ObservableList<String> items =FXCollections.observableArrayList (
-			    "Single", "Double", "Suite", "Family App");
+			    "Placeholder", "Menu", "Leetcode", "Piano");
 		menu.setItems(items);
+		
+		//mouse clicker that sends signal to all tables to deselect if needed
+		
 	}
+
+    void mouseClick() {
+    	Boolean mouseInADayPane = false;
+    	for (int i = 0; i < 7 && !mouseInADayPane; i++) {
+    		mouseInADayPane = !controllers[i].getMouseOut();
+    	}
+    	if (!mouseInADayPane) {
+    		for (int i = 0; i < 7; i++) {
+    			controllers[i].deselect();
+    		}
+    	}
+    	//System.out.println("clicked!");
+    }
 	
 	@FXML
 	public void handleButtonClick() {
