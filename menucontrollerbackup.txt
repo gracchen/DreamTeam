@@ -65,7 +65,7 @@ public class MenuController {
     	
     }
     
-    void loadData() { //figure out how to load 2d array into a listview??? 
+    void loadData() {
     	items.clear();
 		c.runSQL("select * from " + tableName + ";");		
 		//int id, String name, int menuID, int progress, String link

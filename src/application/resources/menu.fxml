@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.text.Text?>
+<?import javafx.scene.control.ListView?>
 
- <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.java.MenuController">
-   <left>
-      <Text fx:id="source" onDragDetected="#drag" strokeType="OUTSIDE" strokeWidth="0.0" text="Drag ME" BorderPane.alignment="CENTER" />
-   </left>
-   <right>
-      <Text fx:id="target" strokeType="OUTSIDE" strokeWidth="0.0" text="Drop Here" BorderPane.alignment="CENTER" />
-   </right>
-</BorderPane> 
+
+<ListView fx:id="listview" onDragDetected="#drag"
+xmlns="http://javafx.com/javafx/20.0.1" 
+xmlns:fx="http://javafx.com/fxml/1" 
+fx:controller="application.java.MenuController"/>

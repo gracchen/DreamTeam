@@ -1,12 +1,15 @@
 package application.java;
 
 import java.io.IOException;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -20,6 +23,9 @@ public class Controller {
 	private HBox calendar;
 	//@FXML
 	//private ListView<String> menu;
+	
+	@FXML
+	private BorderPane stage;
 	@FXML
 	private FlowPane menu;
 	
@@ -30,6 +36,10 @@ public class Controller {
 		c = new Connect(); //initialize connection w/ database
 		
 		//add 7 instances of pane-1
+		LocalDate today = LocalDate.now();
+        DayOfWeek dayOfWeek = today.getDayOfWeek();
+        int dayOfWeekValue = (dayOfWeek.getValue() - 1) % 7;
+        
 		for (int i = 0; i < 7; i++) {
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/application/resources/day.fxml"));
 			Parent root = null;
@@ -41,14 +51,22 @@ public class Controller {
 			controllers[i].setConnect(c);	//gives each day access to a shared sql connection
 			calendar.getChildren().add(root);
 			HBox.setHgrow(root, Priority.ALWAYS); //allow tableview to grow if greater than pref dimensions
+			if (dayOfWeekValue == i) {
+				controllers[i].highlight();
+			}
 		}
 		ObservableList<String> items =FXCollections.observableArrayList (
 			    "Placeholder", "Menu", "Leetcode", "Piano");
 		//menu.setItems(items);
+		FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/application/resources/menu.fxml"));
 		Parent root2 = null;
 		try {
-			root2 = FXMLLoader.load(getClass().getResource("/application/resources/menu.fxml"));
-		} catch (IOException e) {e.printStackTrace();}
+			root2 = (Parent)fxmlLoader.load();
+		} catch (IOException e) {e.printStackTrace();}          
+		MenuController ctrl = fxmlLoader.<MenuController>getController();
+		ctrl.setHeightProperty(stage.heightProperty());
+		ctrl.setWidthProperty(stage.widthProperty());
+		ctrl.setConnect(c);
 		menu.getChildren().add(root2);
 		//mouse clicker that sends signal to all tables to deselect if needed
 		

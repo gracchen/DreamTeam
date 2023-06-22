@@ -20,7 +20,7 @@
    </top>
 
    <center>
-      <SplitPane dividerPositions="0.7" orientation="VERTICAL" prefWidth="${stage.width}" BorderPane.alignment="CENTER">
+      <SplitPane dividerPositions="0.9" orientation="VERTICAL" prefWidth="${stage.width}" BorderPane.alignment="CENTER">
         <items>
             <HBox fx:id="calendar" />
             <!-- <ListView fx:id="menu" /> -->

@@ -1,5 +1,9 @@
 # DreamTeam
 
+### 6-22-2023
+
+- drag and drop tutorial: https://docs.oracle.com/javafx/2/drag_drop/jfxpub-drag_drop.htm
+
 ### 6-21-2023
 
 - to generate automatic setters, getters, and cnostructor for a class:

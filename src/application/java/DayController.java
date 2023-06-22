@@ -157,6 +157,10 @@ public class DayController {
     	}
     }
     
+    void highlight() {
+    	header.setStyle("-fx-border-color: orange;");
+    }
+    
     @FXML
     void delClicked(ActionEvent event) {
     	ObservableList<Task> selectedItems = tableview.getSelectionModel().getSelectedItems();
