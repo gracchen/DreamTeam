@@ -7,11 +7,9 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.control.ListView;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import application.java.Connect;
 
 public class Controller {
 	private Connect c;
@@ -20,8 +18,11 @@ public class Controller {
 	
 	@FXML
 	private HBox calendar;
+	//@FXML
+	//private ListView<String> menu;
 	@FXML
-	private ListView<String> menu;
+	private FlowPane menu;
+	
 	@FXML
 	private void initialize() {
 		System.out.println("initializing....");
@@ -43,8 +44,12 @@ public class Controller {
 		}
 		ObservableList<String> items =FXCollections.observableArrayList (
 			    "Placeholder", "Menu", "Leetcode", "Piano");
-		menu.setItems(items);
-		
+		//menu.setItems(items);
+		Parent root2 = null;
+		try {
+			root2 = FXMLLoader.load(getClass().getResource("/application/resources/menu.fxml"));
+		} catch (IOException e) {e.printStackTrace();}
+		menu.getChildren().add(root2);
 		//mouse clicker that sends signal to all tables to deselect if needed
 		
 	}

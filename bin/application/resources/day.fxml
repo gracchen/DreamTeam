@@ -17,7 +17,7 @@
          </font></Label>
    </top>
    <center>
-      <TableView fx:id="tableview" editable="true" BorderPane.alignment="CENTER">
+      <TableView fx:id="tableview" onDragDropped="#drop" onDragOver="#dragOver" editable="true" BorderPane.alignment="CENTER">
         <columns>
           <TableColumn fx:id="taskCol" prefWidth="${tableview.width-30}" reorderable="false" resizable="false" text="Tasks" />
           <TableColumn fx:id="percentCol" maxWidth="30.0" minWidth="30.0" prefWidth="30.0" reorderable="false" resizable="false" text="\%" />

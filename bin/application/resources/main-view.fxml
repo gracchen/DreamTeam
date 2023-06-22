@@ -4,6 +4,7 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.text.Font?>
 
@@ -22,7 +23,8 @@
       <SplitPane dividerPositions="0.7" orientation="VERTICAL" prefWidth="${stage.width}" BorderPane.alignment="CENTER">
         <items>
             <HBox fx:id="calendar" />
-            <ListView fx:id="menu" />
+            <!-- <ListView fx:id="menu" /> -->
+            <FlowPane fx:id="menu" />
         </items>
       </SplitPane>
    </center>
