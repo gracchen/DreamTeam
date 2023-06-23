@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.BorderPane?>
 
-
-<ListView fx:id="listview" onDragDetected="#drag"
-xmlns="http://javafx.com/javafx/20.0.1" 
-xmlns:fx="http://javafx.com/fxml/1" 
-fx:controller="application.java.MenuController"/>
+<BorderPane fx:id="view" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.java.MenuController">
+   <center>
+	<ListView fx:id="listview" onDragDetected="#drag" />
+   </center>
+   <bottom>
+      <ButtonBar prefHeight="40.0" BorderPane.alignment="CENTER">
+        <buttons>
+          <Button mnemonicParsing="false" onAction="#addClick" text="+" />
+          <Button mnemonicParsing="false" onAction="#delClick" text="-" />
+        </buttons>
+      </ButtonBar>
+   </bottom>
+</BorderPane>

@@ -1,6 +1,7 @@
 package application.java;
 
 import java.sql.SQLException;
+import java.util.AbstractMap.SimpleEntry;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -18,6 +19,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
@@ -31,7 +33,7 @@ public class DayController {
 	private BorderPane dayPane;
     @FXML
     private Label header;
-	private StringProperty tableName;
+	private StringProperty tableName = new SimpleStringProperty();
 	@FXML
 	private Button addButton;
 	@FXML
@@ -54,7 +56,6 @@ public class DayController {
 		taskCol.prefWidthProperty().bind(tableview.widthProperty().subtract(30));
 		
 		//bind header to name of table
-		tableName = new SimpleStringProperty();
 		header.textProperty().bind(tableName);
 		
 		//draw box around it so that aligns centered with tableview
@@ -104,9 +105,11 @@ public class DayController {
     	tableview.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     }
     
+    
+    
     @FXML
     public void dragOver(DragEvent event) {
-        if (event.getGestureSource() != tableview && event.getDragboard().hasString())
+        if (event.getGestureSource() != tableview && event.getDragboard().hasContent(DataFormat.PLAIN_TEXT))
             event.acceptTransferModes(TransferMode.COPY);
         event.consume();
     }
@@ -114,10 +117,12 @@ public class DayController {
     @FXML
     public void drop(DragEvent event) { 
         Dragboard db = event.getDragboard();
-        boolean success = db.hasString();
-        if (db.hasString()) {
-        	System.out.println(db.getString());
-        	addEntry(db.getString());
+        //boolean success = db.hasString();
+        boolean success = db.hasContent(DataFormat.PLAIN_TEXT);
+        if (success) {
+			String src = (String) db.getContent(DataFormat.PLAIN_TEXT);
+        	String[] parts = src.split(":", 2);
+        	addEntry(parts[1], Integer.valueOf(parts[0]));
         }
         event.setDropCompleted(success);
         event.consume();
@@ -134,8 +139,9 @@ public class DayController {
 		} catch (SQLException e1) {e1.printStackTrace();}
     }
     
-    Boolean addEntry(String name) {
-    	c.runSQL(String.format("insert into %s (name, menuID, progress) values ('%s','-1','0');", tableName.get(), name));	
+    
+    Boolean addEntry(String name, int menuID) {
+    	c.runSQL(String.format("insert into %s (name, menuID, progress) values ('%s','%d','0');", tableName.get(), name, menuID));	
     	c.runSQL(String.format("select * from %s order by id desc limit 1", tableName.get()));	//get id of the last added row
 		try {
 			if (c.rs.next()) {
@@ -146,6 +152,10 @@ public class DayController {
 			}
 		} catch (SQLException e1) {e1.printStackTrace();}
 		return false;
+    }
+    
+    Boolean addEntry(String name) {
+    	return addEntry(name, -1);
     }
     
     @FXML
