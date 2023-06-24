@@ -3,9 +3,9 @@ package application.java;
 import java.sql.SQLException;
 import java.util.AbstractMap.SimpleEntry;
 
-import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -24,6 +24,8 @@ import javafx.scene.layout.BorderPane;
 public class MenuController {
 	@FXML 
 	BorderPane view;
+	
+	Controller main;
 
 	@FXML
 	ListView<SimpleEntry<Integer,String>> listview;
@@ -85,6 +87,17 @@ public class MenuController {
     void setConnect(Connect c) {
     	this.c = c;
     	loadData();
+    }
+    
+    void setMain(Controller m) {
+    	main = m;
+    	listview.getSelectionModel().selectedItemProperty().addListener(e -> {
+    		System.out.println("selection changed!");
+    		if (main != null & listview.getSelectionModel().getSelectedIndex() != -1) {
+    			main.highlightMenuID(listview.getSelectionModel().getSelectedItem().getKey());
+    		}
+    		
+    	});
     }
     
     void loadData() { //figure out how to load 2d array into a listview??? 

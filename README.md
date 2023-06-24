@@ -1,6 +1,8 @@
 # DreamTeam
 
 ### 6-24-2023
+- still issues with highlight(menuID) flashing instead of staying put, so need to come up with more complicated highlight styling change inside cell factory because selection code for a tableview while the user is focused on the menu may make the selection wonky. 
+
 - fix edit, scroll away, then scroll back edits disappear bug (forgot to update data list aswell)
 	```
     	taskCol.setOnEditCommit(e -> {

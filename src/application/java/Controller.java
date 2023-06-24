@@ -64,6 +64,7 @@ public class Controller {
 			root2 = (Parent)fxmlLoader.load();
 		} catch (IOException e) {e.printStackTrace();}          
 		MenuController ctrl = fxmlLoader.<MenuController>getController();
+		ctrl.setMain(this);
 		ctrl.setHeightProperty(stage.heightProperty());
 		ctrl.setWidthProperty(stage.widthProperty());
 		ctrl.setConnect(c);
@@ -72,6 +73,12 @@ public class Controller {
 		
 	}
 
+	public void highlightMenuID(int menuID) {
+		System.out.println("higlightMenuID(" + menuID + ");");
+		for (int i = 0; i < 7; i++) {
+			controllers[i].highlight(menuID);
+		}
+	}
     void mouseClick() {
     	Boolean mouseInADayPane = false;
     	for (int i = 0; i < 7 && !mouseInADayPane; i++) {

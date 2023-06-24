@@ -15,6 +15,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
@@ -106,7 +107,17 @@ public class DayController {
     	tableview.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     }
     
-    
+    public void highlight(int menuID) {
+        tableview.getSelectionModel().clearSelection(); // Clear any existing selections
+        
+        // Iterate over the rows and select the ones with matching menuID
+        for (Task rowData : tableview.getItems()) {
+        	//System.out.println("matches" + menuID + "? " + rowData.getName() + " " + rowData.getMenuID());
+            if (rowData.getMenuID() == menuID) {
+                tableview.getSelectionModel().select(rowData);
+            }
+        }
+    }
     
     @FXML
     public void dragOver(DragEvent event) {
@@ -161,6 +172,7 @@ public class DayController {
     @FXML
     void addClicked(ActionEvent event) {
     	if (addEntry("")) { //if adding successful
+    		deselect();
     		//puts user in edit mode for newly added (last) row's name
             int lastRowIndex = tableview.getItems().size() - 1;	
             tableview.edit(lastRowIndex, taskCol);
@@ -174,6 +186,7 @@ public class DayController {
     
     @FXML
     void delClicked(ActionEvent event) {
+    	if (tableview.getSelectionModel().getSelectedIndices().isEmpty()) return;
     	ObservableList<Task> selectedItems = tableview.getSelectionModel().getSelectedItems();
     	StringBuilder idList = new StringBuilder(String.valueOf(selectedItems.get(0).getId()));	//start with first id
     	for (int i = 1; i < selectedItems.size(); i++) {
