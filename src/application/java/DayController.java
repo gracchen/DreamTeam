@@ -1,7 +1,6 @@
 package application.java;
 
 import java.sql.SQLException;
-import java.util.AbstractMap.SimpleEntry;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -86,7 +85,8 @@ public class DayController {
 
     	//edit listener to execute custom mysql updating code
     	taskCol.setOnEditCommit(e -> {
-    		c.runSQL("update " + tableName.get() + " set name = \"" + e.getNewValue() + "\" where id = " + e.getRowValue().getId());
+    		c.runSQL("update " + tableName.get() + " set name = \'" + e.getNewValue().replaceAll("'", "''") + "\' where id = " + e.getRowValue().getId());
+    		e.getRowValue().setName(e.getNewValue());
     	});
     	percentCol.setOnEditCommit(e -> {
     		int val = e.getNewValue();
@@ -96,7 +96,8 @@ public class DayController {
     			loadData();
     		}
 	    	else { //commit to sql
-	    		c.runSQL("update " + tableName.get() + " set progress = \"" + val + "\" where id = " + e.getRowValue().getId());
+	    		e.getRowValue().setProgress(val);
+	    		c.runSQL("update " + tableName.get() + " set progress = \'" + val + "\' where id = " + e.getRowValue().getId());
     		}
     	});
     	
@@ -141,14 +142,13 @@ public class DayController {
     
     
     Boolean addEntry(String name, int menuID) {
-    	c.runSQL(String.format("insert into %s (name, menuID, progress) values ('%s','%d','0');", tableName.get(), name, menuID));	
+    	c.runSQL(String.format("insert into %s (name, menuID, progress) values ('%s','%d','0');", tableName.get(), name.replaceAll("'", "''"), menuID));	
     	c.runSQL(String.format("select * from %s order by id desc limit 1", tableName.get()));	//get id of the last added row
 		try {
 			if (c.rs.next()) {
-				list.add(new Task(c.rs.getInt("id"),c.rs.getString("name"), c.rs.getInt("menuID"), c.rs.getInt("progress"), c.rs.getString("link")));
-				
+				list.add(new Task(c.rs.getInt("id"), name, menuID, 0, null));
+				tableview.scrollTo(list.get(list.size()-1));
 				return true;
-
 			}
 		} catch (SQLException e1) {e1.printStackTrace();}
 		return false;
@@ -164,6 +164,7 @@ public class DayController {
     		//puts user in edit mode for newly added (last) row's name
             int lastRowIndex = tableview.getItems().size() - 1;	
             tableview.edit(lastRowIndex, taskCol);
+            tableview.scrollTo(list.get(lastRowIndex)); //causes buggy behavior
     	}
     }
     
@@ -174,11 +175,13 @@ public class DayController {
     @FXML
     void delClicked(ActionEvent event) {
     	ObservableList<Task> selectedItems = tableview.getSelectionModel().getSelectedItems();
-
-    	for (Task task : selectedItems) {
-    	    c.runSQL(String.format("delete from %s where id=%d", tableName.get(), task.getId()));
+    	StringBuilder idList = new StringBuilder(String.valueOf(selectedItems.get(0).getId()));	//start with first id
+    	for (int i = 1; i < selectedItems.size(); i++) {
+    		Task task = selectedItems.get(i);
+    		idList.append(",");
+    		idList.append(String.valueOf(task.getId()));
     	}
-    	
+    	c.runSQL(String.format("delete from %s where id in(%s);", tableName.get(), idList));
     	list.removeAll(selectedItems);
     }   
     

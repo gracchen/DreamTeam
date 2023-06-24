@@ -1,5 +1,29 @@
 # DreamTeam
 
+### 6-24-2023
+- fix edit, scroll away, then scroll back edits disappear bug (forgot to update data list aswell)
+	```
+    	taskCol.setOnEditCommit(e -> {
+    		//doesn't work because sorted: list.get(list.indexOf(e.getSource())).setName(e.getNewValue());
+    		tableview.getItems().get(e.getTablePosition().getRow()).setName(e.getNewValue());
+		//OR:
+		e.getRowValue().setName(e.getNewValue());
+		//OR 
+	        items.set(event.getIndex(), event.getNewValue());
+    	});
+	```
+- leagues faster deleting from database (format "delete from table where id in (1,2,3,4);")
+	```
+	ObservableList<Task> selectedItems = tableview.getSelectionModel().getSelectedItems();
+    	StringBuilder idList = new StringBuilder(String.valueOf(selectedItems.get(0).getId()));	//start with first id
+    	for (int i = 1; i < selectedItems.size(); i++) {
+    		Task task = selectedItems.get(i);
+    		idList.append(",");
+    		idList.append(String.valueOf(task.getId()));
+    	}
+    	c.runSQL(String.format("delete from %s where id in(%s);", tableName.get(), idList));
+	```
+
 ### 6-22-2023
 
 - drag and drop tutorial: https://docs.oracle.com/javafx/2/drag_drop/jfxpub-drag_drop.htm

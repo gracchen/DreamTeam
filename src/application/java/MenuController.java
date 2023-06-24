@@ -14,14 +14,12 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
-import javafx.util.StringConverter;
 
 public class MenuController {
 	@FXML 
@@ -46,6 +44,7 @@ public class MenuController {
     
     @FXML
     void addClick(ActionEvent event) {
+    	listview.getSelectionModel().clearSelection();
     	System.out.println("menu add clicked");
     	if (addEntry("")) { //if adding successful
     		//puts user in edit mode for newly added (last) row's name
@@ -59,16 +58,17 @@ public class MenuController {
     	SimpleEntry<Integer,String> selectedItem = listview.getSelectionModel().getSelectedItem();
 
     	c.runSQL(String.format("delete from %s where id=%d", tableName, selectedItem.getKey()));
-    	
     	items.remove(selectedItem);
+    	listview.getSelectionModel().select(listview.getSelectionModel().getSelectedIndex()); //select next item automatically
     }
     
     Boolean addEntry(String name) {
-    	c.runSQL(String.format("insert into %s (name) values ('%s');", tableName, name));	
+    	c.runSQL(String.format("insert into %s (name) values ('%s');", tableName, name.replace("'", "''")));	
     	c.runSQL(String.format("select * from %s order by id desc limit 1", tableName));	//get id of the last added row
 		try {
 			if (c.rs.next()) {
-				items.add(new SimpleEntry<Integer, String>(c.rs.getInt("id"),c.rs.getString("name")));
+				items.add(new SimpleEntry<Integer, String>(c.rs.getInt("id"), name));
+				listview.scrollTo(items.get(items.size()-1));
 				return true;
 			}
 		} catch (SQLException e1) {e1.printStackTrace();}
@@ -97,7 +97,6 @@ public class MenuController {
 				String n = c.rs.getString("name");
 				items.add(new SimpleEntry<Integer,String>(i,n));
 				//items.add(new SimpleEntry<Integer,String>(c.rs.getInt("id"),c.rs.getString("name")));
-				System.out.print(i + " : " + n);
 			}
 			listview.setItems(items);
 			listview.setEditable(true);
@@ -128,27 +127,25 @@ public class MenuController {
 			        setGraphic(textField);
 			        setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
 			        //textField.selectAll();
-		            Platform.runLater(() -> textField.requestFocus());
-			        //textField.setVisible(true);
+		            textField.requestFocus();
 			    }
 			    
 			    @Override
 			    public void cancelEdit() {
 			        super.cancelEdit();
-			        setText(getItem().getValue());
+			        if (getItem() != null) setText(getItem().getValue());
 			        setGraphic(null);
 			        setContentDisplay(ContentDisplay.TEXT_ONLY);
-			        //System.out.println("Canceled");
 			    }
 
 			    @Override
 			    public void commitEdit(SimpleEntry<Integer, String> newValue) {
+			    	//newValue.setValue(newValue.getValue().replace("'","''"));
 			        super.commitEdit(newValue);
-			        setText(newValue.getValue());
+			        if (newValue != null) setText(newValue.getValue());
 			        setGraphic(null);
 			        setContentDisplay(ContentDisplay.TEXT_ONLY);
 			        System.out.println("commited edit");
-			        //textField.setVisible(false);
 			    }
 
 			    private void createTextField() {
@@ -165,9 +162,12 @@ public class MenuController {
 			
 			listview.setOnEditCommit(event -> {
 	            SimpleEntry<Integer, String> editedEntry = event.getNewValue();
-	            int index = event.getIndex();
-	            items.set(index, editedEntry);
-	            c.runSQL("update " + tableName + " set name = \"" + editedEntry.getValue() + "\" where id = " + editedEntry.getKey());
+	            items.set(event.getIndex(), editedEntry);
+
+				String string = editedEntry.getValue();
+				String n = string.replaceAll("'", "''");
+				System.out.println(String.format("replacing name \"%s\" to name \"%s\"",string, n));
+	            c.runSQL("update " + tableName + " set name = \'" + n + "\' where id = " + editedEntry.getKey());
 		        System.out.println("on edit commit");
 	        });
 		} catch (SQLException e1) {e1.printStackTrace();}
