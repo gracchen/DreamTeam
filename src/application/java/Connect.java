@@ -27,14 +27,14 @@ public class Connect {
 		if (query.indexOf("select") == 0) {
 			try {
 				rs = st.executeQuery(query);
-				System.out.println(query + " was successful");
+				System.out.println("\"" + query + "\" was successful");
 				return 0;
 			} catch (SQLException e) {e.printStackTrace(); System.err.println(query + " failed"); return -1;}
 		}
 		else {
 			try {
 				st.executeUpdate(query);
-				System.out.println(query + " was successful");
+				System.out.println("\"" + query + "\" was successful");
 				return 0;
 			} catch (SQLException e) {e.printStackTrace(); System.err.println(query + " failed"); return -1;}
 		}

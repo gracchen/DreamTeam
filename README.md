@@ -1,30 +1,63 @@
 # DreamTeam
 
-### 6-24-2023
-- still issues with highlight(menuID) flashing instead of staying put, so need to come up with more complicated highlight styling change inside cell factory because selection code for a tableview while the user is focused on the menu may make the selection wonky. 
+### 6-25-2023
+- fixed flashing select, was result of conflict with another custom functionality of deselecting from all tables when user click outside. Now only if mouse is outside of all 7 tables AND the menu.
+- auto-sync between custom Task row objects with tableview?  Use Properties for all variables:
+	```
+	public class Task {
+		private IntegerProperty id;
+		private StringProperty name;
+		private IntegerProperty menuID;
+		private IntegerProperty progress;
+		private StringProperty link;
+		...
+	}
+	```
 
+### 6-24-2023
+- handling single quotes in sql:
+	- reading sql --> java: already taken care of, read as normal.
+		```
+		runSQL("select * from tableName;");
+		while(rs.next()) {
+			list.add(rs.getString("name"));
+		}
+		```
+
+	- pushing java --> sql: 
+		```
+		runSQL(String.format("insert into tableName (name) values ('%s');", newVal.replaceAll("'", "''")));	
+		```
 - fix edit, scroll away, then scroll back edits disappear bug (forgot to update data list aswell)
 	```
     	taskCol.setOnEditCommit(e -> {
-    		//doesn't work because sorted: list.get(list.indexOf(e.getSource())).setName(e.getNewValue());
-    		tableview.getItems().get(e.getTablePosition().getRow()).setName(e.getNewValue());
-		//OR:
 		e.getRowValue().setName(e.getNewValue());
-		//OR 
-	        items.set(event.getIndex(), event.getNewValue());
     	});
 	```
+- programmatically scroll, edit, and select from table or list view:
+	```
+	tableview.scrollTo(list.get(index));
+	tableview.edit(index, column);
+	tableview.getSelectionModel().clearSelection();
+	tableview.getSelectionModel().select(index);
+	```
+
 - leagues faster deleting from database (format "delete from table where id in (1,2,3,4);")
 	```
 	ObservableList<Task> selectedItems = tableview.getSelectionModel().getSelectedItems();
-    	StringBuilder idList = new StringBuilder(String.valueOf(selectedItems.get(0).getId()));	//start with first id
-    	for (int i = 1; i < selectedItems.size(); i++) {
-    		Task task = selectedItems.get(i);
-    		idList.append(",");
-    		idList.append(String.valueOf(task.getId()));
-    	}
-    	c.runSQL(String.format("delete from %s where id in(%s);", tableName.get(), idList));
+    StringBuilder idList = new StringBuilder(String.valueOf(selectedItems.get(0).getId()));	//start with first id
+    for (int i = 1; i < selectedItems.size(); i++) {
+    	Task task = selectedItems.get(i);
+    	idList.append(",");
+    	idList.append(String.valueOf(task.getId()));
+    }
+    runSQL(String.format("delete from %s where id in(%s);", tableName.get(), idList));
 	```
+
+### 6-23-2023
+- too much trouble passing SimpleEntry<Integer,String> into drag and drop dragboard/clipboard, so instead parse into a single string of format "%d:%s" to pass dragged menu item's id to tableviews. 
+- how to make a custom listview (warning: pain in the rear): https://stackoverflow.com/questions/57677244/javafx-combine-two-cellfactory-textfieldtablecell-fortablecolumn-and-custo
+
 
 ### 6-22-2023
 
@@ -32,7 +65,7 @@
 
 ### 6-21-2023
 
-- to generate automatic setters, getters, and cnostructor for a class:
+- to generate automatic setters, getters, and constructor for a class:
 	- Right click on code editor --> Source --> Generate ...
 
 - how to configure edit for tableview w/out massive custom tableview:

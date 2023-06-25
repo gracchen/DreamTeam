@@ -18,7 +18,7 @@ public class Controller {
 	private Connect c;
 	String[] weekdays = {"Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"};
 	DayController[] controllers = new DayController[7];
-	
+	MenuController ctrl;
 	@FXML
 	private HBox calendar;
 	//@FXML
@@ -63,7 +63,7 @@ public class Controller {
 		try {
 			root2 = (Parent)fxmlLoader.load();
 		} catch (IOException e) {e.printStackTrace();}          
-		MenuController ctrl = fxmlLoader.<MenuController>getController();
+		ctrl = fxmlLoader.<MenuController>getController();
 		ctrl.setMain(this);
 		ctrl.setHeightProperty(stage.heightProperty());
 		ctrl.setWidthProperty(stage.widthProperty());
@@ -79,16 +79,26 @@ public class Controller {
 			controllers[i].highlight(menuID);
 		}
 	}
+	public void editMenu(int menuID, String newVal) {
+		System.out.println("editMenuID(" + menuID + ", "+ newVal + ");");
+		for (int i = 0; i < 7; i++) {
+			controllers[i].editMenu(menuID,newVal);
+		}
+	}
     void mouseClick() {
     	Boolean mouseInADayPane = false;
     	for (int i = 0; i < 7 && !mouseInADayPane; i++) {
     		mouseInADayPane = !controllers[i].getMouseOut();
     	}
-    	if (!mouseInADayPane) {
-    		for (int i = 0; i < 7; i++) {
-    			controllers[i].deselect();
-    		}
+    	if (ctrl.getMouseInMenu() == false) {
+        	if (!mouseInADayPane) {
+        		//System.out.println("deselect time :D");
+        		for (int i = 0; i < 7; i++) {
+        			controllers[i].deselect();
+        		}
+        	}
     	}
+
     	//System.out.println("clicked!");
     }
 	

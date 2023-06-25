@@ -33,6 +33,7 @@ public class MenuController {
 	Connect c;
 	DoubleProperty widthProperty, heightProperty;
 	ObservableList<SimpleEntry<Integer,String>> items = FXCollections.observableArrayList();
+	Boolean mouseInMenu = false;
 	
     @FXML
     void drag(MouseEvent event) {
@@ -92,14 +93,27 @@ public class MenuController {
     void setMain(Controller m) {
     	main = m;
     	listview.getSelectionModel().selectedItemProperty().addListener(e -> {
-    		System.out.println("selection changed!");
+    		//System.out.println("selection changed!");
     		if (main != null & listview.getSelectionModel().getSelectedIndex() != -1) {
     			main.highlightMenuID(listview.getSelectionModel().getSelectedItem().getKey());
     		}
     		
     	});
     }
+
+    Boolean getMouseInMenu() {
+    	return mouseInMenu;
+    }
     
+	@FXML
+	void enterList(MouseEvent event) {
+		mouseInMenu = true;
+	}	
+	@FXML
+	void exitList(MouseEvent event) {
+		mouseInMenu = false;
+	}
+	
     void loadData() { //figure out how to load 2d array into a listview??? 
     	items.clear();
 		c.runSQL("select * from " + tableName + ";");		
@@ -182,6 +196,7 @@ public class MenuController {
 				System.out.println(String.format("replacing name \"%s\" to name \"%s\"",string, n));
 	            c.runSQL("update " + tableName + " set name = \'" + n + "\' where id = " + editedEntry.getKey());
 		        System.out.println("on edit commit");
+		        main.editMenu(editedEntry.getKey(), string);
 	        });
 		} catch (SQLException e1) {e1.printStackTrace();}
     }
