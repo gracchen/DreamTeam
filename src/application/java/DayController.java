@@ -49,7 +49,7 @@ public class DayController {
 
 	ObservableList<Task> list = FXCollections.observableArrayList();
 	private Boolean mouseOut = true;
-	private int menuID;
+
 	@FXML
 	private void initialize() {
 		//LAYOUT binding
@@ -77,6 +77,18 @@ public class DayController {
 		initTable();
 	}
 
+	public void deleteMenuID(int menuID) {
+		// Iterate over the rows and select the ones with matching menuID
+    	c.runSQL("delete from " + tableName.get() + " where menuID = " + menuID);
+    	ObservableList<Task> toDelete = FXCollections.observableArrayList();
+		for (Task rowData : tableview.getItems()) {
+            if (rowData.getMenuID() == menuID) {
+            	toDelete.add(rowData);
+            }
+        }
+		list.removeAll(toDelete);
+		deselect();
+	}
 	void initTable() {		
 		//set data to display
 		percentCol.setCellValueFactory(new PropertyValueFactory<Task,Integer>("progress"));
@@ -91,6 +103,7 @@ public class DayController {
 			c.runSQL("update " + tableName.get() + " set name = \'" + e.getNewValue().replaceAll("'", "''") + "\' where id = " + e.getRowValue().getId());
 			e.getRowValue().setName(e.getNewValue());
 		});
+		
 		percentCol.setOnEditCommit(e -> {
 			int val = e.getNewValue();
 
@@ -107,16 +120,11 @@ public class DayController {
 		tableview.setItems(list);
 		//allow multi selection for quicker delete
 		tableview.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		
 	}
 
 	public void highlight(int menuID) {
 		tableview.getSelectionModel().clearSelection(); // Clear any existing selections
-		if (this.menuID == menuID) {
-			menuID = -1;
-			return;
-		}
-		else this.menuID = menuID; //click again to deselect
+
 		// Iterate over the rows and select the ones with matching menuID
 		for (Task rowData : tableview.getItems()) {
         	//System.out.println("matches" + menuID + "? " + rowData.getName() + " " + rowData.getMenuID());
@@ -219,9 +227,11 @@ public class DayController {
 	}
 	
 	public void editMenu(int menuID, String newVal) {
+    	c.runSQL("update " + tableName.get() + " set name = \'" + newVal.replaceAll("'", "''") + "\' where menuID = " + menuID);
 		for (Task rowData : tableview.getItems()) {
             if (rowData.getMenuID() == menuID) {
             	rowData.setName(newVal);
+            	tableview.getSelectionModel().select(rowData);
             }
         }
 	}

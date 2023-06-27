@@ -1,19 +1,25 @@
 package application.java;
 
 import java.sql.SQLException;
+import java.util.Optional;
 import java.util.AbstractMap.SimpleEntry;
 
+import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ReadOnlyDoubleProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
@@ -34,6 +40,10 @@ public class MenuController {
 	DoubleProperty widthProperty, heightProperty;
 	ObservableList<SimpleEntry<Integer,String>> items = FXCollections.observableArrayList();
 	Boolean mouseInMenu = false;
+	@FXML
+	Button add;
+	@FXML
+	Button del;
 	
     @FXML
     void drag(MouseEvent event) {
@@ -48,7 +58,7 @@ public class MenuController {
     @FXML
     void addClick(ActionEvent event) {
     	listview.getSelectionModel().clearSelection();
-    	System.out.println("menu add clicked");
+    	//System.out.println("menu add clicked");
     	if (addEntry("")) { //if adding successful
     		//puts user in edit mode for newly added (last) row's name
             int lastRowIndex = listview.getItems().size() - 1;	
@@ -57,12 +67,23 @@ public class MenuController {
     }
     @FXML
     void delClick(ActionEvent event) {
-    	System.out.println("menu delete clicked");
+    	//System.out.println("menu delete clicked");
     	SimpleEntry<Integer,String> selectedItem = listview.getSelectionModel().getSelectedItem();
 
     	c.runSQL(String.format("delete from %s where id=%d", tableName, selectedItem.getKey()));
-    	items.remove(selectedItem);
-    	listview.getSelectionModel().select(listview.getSelectionModel().getSelectedIndex()); //select next item automatically
+    	
+		ButtonType yes = new ButtonType("yes", ButtonBar.ButtonData.OK_DONE);
+		ButtonType no = new ButtonType("no", ButtonBar.ButtonData.CANCEL_CLOSE);
+		Alert alert = new Alert(AlertType.NONE, "Do you want to also delete all instances within the week?", yes, no);
+		alert.setTitle("Delete all?");
+
+		Optional<ButtonType> result = alert.showAndWait();
+		
+		if (result.get() == yes) {
+			System.out.println("deleteMenuID(" + selectedItem.getKey() + ");");
+			main.deleteMenuID(selectedItem.getKey());
+		}
+		items.remove(selectedItem);
     }
     
     Boolean addEntry(String name) {
@@ -76,13 +97,6 @@ public class MenuController {
 			}
 		} catch (SQLException e1) {e1.printStackTrace();}
 		return false;
-    }
-    
-    void setWidthProperty(ReadOnlyDoubleProperty widthProperty) {
-    	view.prefWidthProperty().bind(widthProperty);
-    }
-    void setHeightProperty(ReadOnlyDoubleProperty heightProperty) {
-    	view.prefHeightProperty().bind(heightProperty.multiply(0.3));
     }
     
     void setConnect(Connect c) {
@@ -172,7 +186,7 @@ public class MenuController {
 			        if (newValue != null) setText(newValue.getValue());
 			        setGraphic(null);
 			        setContentDisplay(ContentDisplay.TEXT_ONLY);
-			        System.out.println("commited edit");
+			        //System.out.println("commited edit");
 			    }
 
 			    private void createTextField() {
@@ -180,7 +194,7 @@ public class MenuController {
 			        textField.setOnKeyPressed(event -> {
 			            if (event.getCode() == KeyCode.ENTER) {
 			                commitEdit(new SimpleEntry<>(getItem().getKey(), textField.getText()));
-					        System.out.println("Enter pressed");
+					        //System.out.println("Enter pressed");
 					        event.consume();
 			            }
 			        });
@@ -193,13 +207,23 @@ public class MenuController {
 
 				String string = editedEntry.getValue();
 				String n = string.replaceAll("'", "''");
-				System.out.println(String.format("replacing name \"%s\" to name \"%s\"",string, n));
+				//System.out.println(String.format("replacing name \"%s\" to name \"%s\"",string, n));
 	            c.runSQL("update " + tableName + " set name = \'" + n + "\' where id = " + editedEntry.getKey());
-		        System.out.println("on edit commit");
-		        main.editMenu(editedEntry.getKey(), string);
+		        
+	            Platform.runLater(new Runnable() {
+            	    public void run() {
+            	    	main.editMenu(editedEntry.getKey(), string); //only displays change once setOnEditCommit returns,
+            	    	//but since editMenu shows a dialog that waits for user input, at that time change is not seen. 
+            	    	//run later so that while user is looking at dialog box the change is already displayed since 
+            	    	//setOnEditCommit() returned already.
+            	    }
+            	});
+		        
 	        });
 		} catch (SQLException e1) {e1.printStackTrace();}
     }
 
-
+    void deselect() {
+    	listview.getSelectionModel().clearSelection();
+    }
 }
