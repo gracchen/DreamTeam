@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import com.mysql.cj.jdbc.exceptions.CommunicationsException;
+
 
 public class Connect {
 
@@ -27,15 +27,16 @@ public class Connect {
 	
 	int runSQL(String query) {
 		if (query.indexOf("select") == 0) {
-			try {
-				rs = st.executeQuery(query);
+			
+				try {
+					rs = st.executeQuery(query);
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				System.out.println("\"" + query + "\" was successful");
 				return 0;
-			} catch (CommunicationsException ex) {
-			    System.out.println("Sorry, connection timed out. Will retry.");
-			    runSQL(query);
-			    return 0;
-			} catch (SQLException ex) {ex.printStackTrace(); System.err.println(query + " failed"); return -1;}
+			
 		}
 		else {
 			try {

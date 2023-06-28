@@ -1,5 +1,45 @@
 # DreamTeam
 
+### 6-26-2023
+- to include fxml inside another:
+	
+	- in main.fxml:
+	```
+		<fx:include fx:id="menu" prefHeight="${split.height}" prefWidth="${split.width*0.3}" source="menu.fxml" />
+	```
+
+	- in menu.fxml:
+	```
+		<BorderPane xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.java.MenuController">
+	```
+
+	- in main controller (MUST declare name of controller as [name] + "Controller" capitalized. 
+	```
+	@FXML private Parent menu;
+	@FXML private menuController menuController;
+
+	```
+
+- simple custom Alert:
+	```
+	ButtonType yes = new ButtonType("yes", ButtonBar.ButtonData.OK_DONE);
+	ButtonType no = new ButtonType("no", ButtonBar.ButtonData.CANCEL_CLOSE);
+	Alert alert = new Alert(AlertType.NONE, "Do you like red?", yes, no);
+	alert.setTitle("My alert");
+
+	Optional<ButtonType> result = alert.showAndWait();
+
+	if (result.get() == yes)System.out.println("likes red");	
+	```
+- to do later and thus return sooner:
+	```
+ 	Platform.runLater(new Runnable() {
+		public void run() {
+			doThisLater();
+		}
+	});
+	```
+
 ### 6-25-2023
 - fixed flashing select, was result of conflict with another custom functionality of deselecting from all tables when user click outside. Now only if mouse is outside of all 7 tables AND the menu.
 - auto-sync between custom Task row objects with tableview?  Use Properties for all variables:

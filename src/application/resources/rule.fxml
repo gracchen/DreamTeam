@@ -6,32 +6,46 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.text.Font?>
-<?import javafx.scene.control.ButtonBar?>
 
-<BorderPane fx:id="view" onMouseEntered="#enterDayPane" onMouseExited="#exitDayPane" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.java.RuleController">
-   <top>
-      <Label text="Rules" BorderPane.alignment="CENTER">
-         <font>
-            <Font size="12.0" />
-         </font></Label>
-   </top>
-   <center>
-      <TableView fx:id="tableview" editable="true" BorderPane.alignment="CENTER">
-        <columns>
-          <TableColumn fx:id="taskCol" prefWidth="${tableview.width-30}" reorderable="false" resizable="false" text="Tasks" />
-          <TableColumn fx:id="percentCol" maxWidth="30.0" minWidth="30.0" prefWidth="30.0" reorderable="false" resizable="false" text="\%" />
-        </columns>
-      </TableView>
-   </center>
-   	<bottom>
-		<ButtonBar buttonMinWidth="30" prefHeight="${view.height*0.1}" BorderPane.alignment="CENTER">
-			<buttons>
-				<Button fx:id="addButton" alignment="CENTER" mnemonicParsing="false" onAction="#addClicked"  text="+" />
-				<Button fx:id="delButton" alignment="CENTER" mnemonicParsing="false" onAction="#delClicked" text="-" />
-			</buttons>
-		</ButtonBar>
+<BorderPane fx:id="view" onMouseEntered="#enterDayPane"
+	onMouseExited="#exitDayPane" prefHeight="200.0" prefWidth="200.0"
+	GridPane.rowIndex="1" xmlns="http://javafx.com/javafx/20.0.1"
+	xmlns:fx="http://javafx.com/fxml/1"
+	fx:controller="application.java.RuleController">
+	<top>
+		<Label text="Rules" BorderPane.alignment="CENTER">
+			<font>
+				<Font size="12.0" />
+			</font>
+		</Label>
+	</top>
+	<center>
+		<TableView fx:id="tableview" onDragDropped="#drop" onDragOver="#dragOver" editable="true"
+			BorderPane.alignment="CENTER">
+			<columns>
+				<TableColumn fx:id="nameCol" prefWidth="${tableview.width*0.51}" minWidth="60"
+					reorderable="false" resizable="false" text="Name" />
+				<TableColumn fx:id="monCol" prefWidth="30"
+					reorderable="false" resizable="false" text="M" />
+				<TableColumn fx:id="tuesCol" prefWidth="30"
+					reorderable="false" resizable="false" text="T" />
+				<TableColumn fx:id="wedCol" prefWidth="30"
+					reorderable="false" resizable="false" text="W" />
+				<TableColumn fx:id="thursCol" prefWidth="30"
+					reorderable="false" resizable="false" text="R" />
+				<TableColumn fx:id="friCol" prefWidth="30"
+					reorderable="false" resizable="false" text="F" />
+				<TableColumn fx:id="satCol" prefWidth="30"
+					reorderable="false" resizable="false" text="Sa" />
+				<TableColumn fx:id="sunCol" prefWidth="30"
+					reorderable="false" resizable="false" text="Su" />
+			</columns>
+		</TableView>
+	</center>
+	<bottom>
+		<Button fx:id="delButton" alignment="CENTER"
+			mnemonicParsing="false" onAction="#delClicked" text="-" />
 	</bottom>
 
 </BorderPane>

@@ -5,19 +5,18 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Optional;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.control.ButtonBar;
 
 public class Controller {
 	private Connect c;
@@ -72,7 +71,14 @@ public class Controller {
 		}
 	}
 	public void editMenu(int menuID, String newVal) {
-		
+		ruleController.updateEntry(menuID,newVal);
+		Boolean doAlert = false;
+		for (int i = 0; i < 7 && !doAlert; i++) {
+			if (controllers[i].hasTask(menuID))
+				doAlert = true;
+		}
+		if (!doAlert) return; //do nothing
+		//otherwise ask
 		ButtonType yes = new ButtonType("yes", ButtonBar.ButtonData.OK_DONE);
 		ButtonType no = new ButtonType("no", ButtonBar.ButtonData.CANCEL_CLOSE);
 		Alert alert = new Alert(AlertType.NONE, "Do you want the rename to apply to all instances within the week?", yes, no);
@@ -86,12 +92,32 @@ public class Controller {
 				controllers[i].editMenu(menuID,newVal);
 			}
 		}
+
 	}
 	
 	public void deleteMenuID(int menuID) {
-		for (int i = 0; i < 7; i++) {
-			controllers[i].deleteMenuID(menuID);
+		
+		Boolean doAlert = false;
+		for (int i = 0; i < 7 && !doAlert; i++) {
+			if (controllers[i].hasTask(menuID))
+				doAlert = true;
 		}
+		if (!doAlert) return; //do nothing
+		
+		ButtonType yes = new ButtonType("yes", ButtonBar.ButtonData.OK_DONE);
+		ButtonType no = new ButtonType("no", ButtonBar.ButtonData.CANCEL_CLOSE);
+		Alert alert = new Alert(AlertType.NONE, "Do you want to also delete all instances within the week?", yes, no);
+		alert.setTitle("Delete all?");
+
+		Optional<ButtonType> result = alert.showAndWait();
+		
+		if (result.get() == yes) {
+			System.out.println("deleteMenuID(" + menuID + ");");
+			for (int i = 0; i < 7; i++) {
+				controllers[i].deleteMenuID(menuID);
+			}
+		}
+		
 	}
 	
     void mouseClick() {
@@ -112,6 +138,12 @@ public class Controller {
     	//System.out.println("clicked!");
     }
 	
+    public void bigDelete(ActionEvent event) {
+		for (int i = 0; i < 7; i++) {
+			controllers[i].delClicked(null);
+		}
+    }
+    
 	@FXML
 	public void handleButtonClick() {
 		System.out.println("buttonClick");

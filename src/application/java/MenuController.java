@@ -6,7 +6,6 @@ import java.util.AbstractMap.SimpleEntry;
 
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -67,23 +66,22 @@ public class MenuController {
     }
     @FXML
     void delClick(ActionEvent event) {
+    	
     	//System.out.println("menu delete clicked");
     	SimpleEntry<Integer,String> selectedItem = listview.getSelectionModel().getSelectedItem();
-
+    	if (selectedItem == null) return; //nothing selected, do nothing
     	c.runSQL(String.format("delete from %s where id=%d", tableName, selectedItem.getKey()));
     	
-		ButtonType yes = new ButtonType("yes", ButtonBar.ButtonData.OK_DONE);
-		ButtonType no = new ButtonType("no", ButtonBar.ButtonData.CANCEL_CLOSE);
-		Alert alert = new Alert(AlertType.NONE, "Do you want to also delete all instances within the week?", yes, no);
-		alert.setTitle("Delete all?");
 
-		Optional<ButtonType> result = alert.showAndWait();
-		
-		if (result.get() == yes) {
-			System.out.println("deleteMenuID(" + selectedItem.getKey() + ");");
-			main.deleteMenuID(selectedItem.getKey());
-		}
+		main.deleteMenuID(selectedItem.getKey());
+
 		items.remove(selectedItem);
+		Platform.runLater(new Runnable() {
+    	    public void run() {
+    	    	listview.getSelectionModel().select(items.size()-1);
+    	    }
+		}
+		);
     }
     
     Boolean addEntry(String name) {
@@ -203,8 +201,11 @@ public class MenuController {
 			
 			listview.setOnEditCommit(event -> {
 	            SimpleEntry<Integer, String> editedEntry = event.getNewValue();
-	            items.set(event.getIndex(), editedEntry);
 
+	            String oldVal = items.get(event.getIndex()).getValue();
+	            if (editedEntry.getValue().equals(oldVal)) return; //skip all this.
+	            items.set(event.getIndex(), editedEntry);
+	            
 				String string = editedEntry.getValue();
 				String n = string.replaceAll("'", "''");
 				//System.out.println(String.format("replacing name \"%s\" to name \"%s\"",string, n));
@@ -212,13 +213,14 @@ public class MenuController {
 		        
 	            Platform.runLater(new Runnable() {
             	    public void run() {
-            	    	main.editMenu(editedEntry.getKey(), string); //only displays change once setOnEditCommit returns,
             	    	//but since editMenu shows a dialog that waits for user input, at that time change is not seen. 
             	    	//run later so that while user is looking at dialog box the change is already displayed since 
             	    	//setOnEditCommit() returned already.
+
+            				main.editMenu(editedEntry.getKey(), string); //only displays change once setOnEditCommit returns,
+
             	    }
             	});
-		        
 	        });
 		} catch (SQLException e1) {e1.printStackTrace();}
     }

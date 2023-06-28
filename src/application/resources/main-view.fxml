@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.SplitPane?>
@@ -8,33 +9,36 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="stage" maxHeight="-Infinity"
-	maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-	prefHeight="400.0" prefWidth="600.0"
-	xmlns="http://javafx.com/javafx/20.0.1"
-	xmlns:fx="http://javafx.com/fxml/1"
-	fx:controller="application.java.Controller">
-	<top>
-		<BorderPane prefHeight="0.0" prefWidth="600.0"
-			BorderPane.alignment="CENTER">
-			<top>
+<BorderPane fx:id="stage" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.java.Controller">
+   <top>
+      <BorderPane fx:id="header" prefHeight="${stage.height*0.07}" prefWidth="${stage.width}" BorderPane.alignment="CENTER">
+         <center>
 				<Label text="Dream Team" BorderPane.alignment="CENTER">
 					<font>
 						<Font size="33.0" />
 					</font>
 				</Label>
-			</top>
-		</BorderPane>
-	</top>
-
+         </center>
+         <right>
+            <Button onAction="#bigDelete" alignment="CENTER" prefHeight="${header.height*0.5}" mnemonicParsing="false" text="Delete Selected" textAlignment="JUSTIFY" BorderPane.alignment="CENTER" />
+         </right>
+         <left>
+            <Button alignment="CENTER" disable="true" focusTraversable="false" mnemonicParsing="false" text="Delete Selected" textAlignment="JUSTIFY" visible="false" BorderPane.alignment="CENTER" />
+         </left>
+         <BorderPane.margin>
+            <Insets left="20.0" right="20.0" />
+         </BorderPane.margin>
+      </BorderPane>
+   </top>
+   
 	<center>
 		<SplitPane dividerPositions="0.55" orientation="VERTICAL" prefWidth="${stage.width}" BorderPane.alignment="CENTER">
 			<items>
 				<HBox fx:id="calendar" />
-				<SplitPane dividerPositions="0.3" fx:id="split" prefWidth="${stage.width}" BorderPane.alignment="CENTER">
+				<SplitPane fx:id="split" dividerPositions="0.22, 0.7" prefWidth="${stage.width}" BorderPane.alignment="CENTER">
 					<items>
 					 	<fx:include fx:id="menu" prefHeight="${split.height}" prefWidth="${split.width*0.3}" source="menu.fxml" />
-						<fx:include fx:id="rule" prefHeight="${split.height}" prefWidth="${split.width*0.3}" source="rule.fxml" /> 
+						<fx:include fx:id="rule" minWidth="270" prefHeight="${split.height}" prefWidth="${split.width*0.3}" source="rule.fxml" /> 
 						<AnchorPane>
 								<Label text="AYYYO" />
 								<Button mnemonicParsing="false" text="Button" />
@@ -44,4 +48,5 @@
 			</items>
 		</SplitPane>
 	</center>
+
 </BorderPane>
