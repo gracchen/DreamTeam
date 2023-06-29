@@ -22,7 +22,7 @@ public class Rule {
     private BooleanProperty sun;
     private Connect c;
     
-    public Rule(int id, int menuID, String name, Boolean mon,
+    public Rule(int id, String name, int menuID, Boolean mon,
     		Boolean tues, Boolean wed, Boolean thurs, Boolean fri, Boolean sat,
     		Boolean sun, Connect c) {
         super();

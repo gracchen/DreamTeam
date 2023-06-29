@@ -7,6 +7,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.layout.HBox?>
 
 <BorderPane fx:id="view" onMouseEntered="#enterDayPane"
 	onMouseExited="#exitDayPane" prefHeight="200.0" prefWidth="200.0"
@@ -44,8 +45,12 @@
 		</TableView>
 	</center>
 	<bottom>
-		<Button fx:id="delButton" alignment="CENTER"
-			mnemonicParsing="false" onAction="#delClicked" text="-" />
+      <HBox alignment="CENTER" prefHeight="${addButton.height*1.05}" prefWidth="${tableview.width}" BorderPane.alignment="CENTER">
+         <children>
+            <Button fx:id="addButton" text="+" mnemonicParsing="false" onAction="#addClicked" prefWidth="${tableview.width*0.1}" />
+            <Button fx:id="delButton" text="-" mnemonicParsing="false" onAction="#delClicked" prefWidth="${tableview.width*0.1}" />
+         </children>
+      </HBox>
 	</bottom>
 
 </BorderPane>

@@ -2,6 +2,7 @@ package application.java;
 
 import java.sql.SQLException;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -11,12 +12,14 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
+import javafx.util.converter.IntegerStringConverter;
 
 public class RuleController {
 	private Connect c;
@@ -60,6 +63,12 @@ public class RuleController {
 		satCol.setCellValueFactory(new PropertyValueFactory<Rule,Boolean>("sat"));
 		sunCol.setCellValueFactory(new PropertyValueFactory<Rule,Boolean>("sun"));
 		
+		//make editable
+		nameCol.setCellFactory(TextFieldTableCell.<Rule>forTableColumn());
+		nameCol.setOnEditCommit(e -> {
+			c.runSQL("update " + tableName + " set name = \'" + e.getNewValue().replaceAll("'", "''") + "\' where id = " + e.getRowValue().getId());
+			e.getRowValue().setName(e.getNewValue());
+		});
 		monCol.setCellFactory(CheckBoxTableCell.forTableColumn(monCol));
 		tuesCol.setCellFactory(CheckBoxTableCell.forTableColumn(tuesCol));
 		wedCol.setCellFactory(CheckBoxTableCell.forTableColumn(wedCol));
@@ -71,6 +80,22 @@ public class RuleController {
 		tableview.setItems(list);
 		
 	}
+	
+	void highlight(int menuID) { 
+		tableview.getSelectionModel().clearSelection(); // Clear any existing selections
+
+		// Iterate over the rows and select the ones with matching menuID
+		for (Rule rowData : tableview.getItems()) {
+        	//System.out.println("matches" + menuID + "? " + rowData.getName() + " " + rowData.getMenuID());
+            if (rowData.getMenuID() == menuID) {
+            	Platform.runLater(new Runnable() {
+            	    public void run() {
+            	    	tableview.getSelectionModel().select(rowData);
+            	    }
+            	});
+            }
+        }
+	}
 
 	void loadData() {
 		list.clear();
@@ -78,24 +103,18 @@ public class RuleController {
 		//int id, String name, int menuID, int progress, String link
 		try {
 			while(c.rs.next()) {
-				System.out.println("added a new rule!");
-				list.add(new Rule(c.rs.getInt("id"),c.rs.getInt("menuID"), "", c.rs.getBoolean("mon"), c.rs.getBoolean("tues"), 
+				list.add(new Rule(c.rs.getInt("id"),c.rs.getString("name"),c.rs.getInt("menuID"),  c.rs.getBoolean("mon"), c.rs.getBoolean("tues"), 
 						c.rs.getBoolean("wed"), c.rs.getBoolean("thurs"), c.rs.getBoolean("fri"), c.rs.getBoolean("sat"), c.rs.getBoolean("sun"), c));
-			}
-			for (Rule rule : list) {
-				c.runSQL("select * from menu where id=" + rule.getMenuID());
-				if(c.rs.next())
-					rule.setName(c.rs.getString("name"));
 			}
 		} catch (SQLException e1) {e1.printStackTrace();}
 	}
 
 	Boolean addEntry(int menuID, String name) {
-		c.runSQL(String.format("insert into %s (menuID, mon, tues, wed, thurs, fri, sat, sun) values ('%d',0,0,0,0,0,0,0);", tableName, menuID));	
+		c.runSQL(String.format("insert into %s (name, menuID, mon, tues, wed, thurs, fri, sat, sun) values ('%s', '%d',0,0,0,0,0,0,0);", tableName, name.replaceAll("'","''"), menuID));	
 		c.runSQL(String.format("select * from %s order by id desc limit 1", tableName));	//get id of the last added row
 		try {
 			if (c.rs.next()) {
-				list.add(new Rule(c.rs.getInt("id"),c.rs.getInt("menuID"), name, false, false, false, false, false, false, false, c));
+				list.add(new Rule(c.rs.getInt("id"), name, menuID, false, false, false, false, false, false, false, c));
 				tableview.scrollTo(list.get(list.size()-1));
 				return true;
 			}
@@ -107,19 +126,20 @@ public class RuleController {
 		for (Rule rule : list) {
 			if (rule.getMenuID() == menuID) {
 				rule.setName(newName);
+				c.runSQL("update Rules set name = '" + newName.replaceAll("'","''") + "' where id = " + rule.getId()); //and remotely
 			}
 		}
 	}
-/*
+
 	@FXML
 	void addClicked(ActionEvent event) {
-		if (addEntry("")) { //if adding successful
+		if (addEntry(-1,"")) { //if adding successful
 			//puts user in edit mode for newly added (last) row's name
 			int lastRowIndex = tableview.getItems().size() - 1;	
 			tableview.edit(lastRowIndex, nameCol);
 			tableview.scrollTo(list.get(lastRowIndex)); //causes buggy behavior
 		}
-	}*/
+	}
 
 	@FXML
 	public void dragOver(DragEvent event) {

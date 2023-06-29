@@ -20,10 +20,10 @@
 				</Label>
          </center>
          <right>
-            <Button onAction="#bigDelete" alignment="CENTER" prefHeight="${header.height*0.5}" mnemonicParsing="false" text="Delete Selected" textAlignment="JUSTIFY" BorderPane.alignment="CENTER" />
+            <Button alignment="CENTER" mnemonicParsing="false" onAction="#bigDelete" prefHeight="${header.height*0.5}" text="Delete Selected" textAlignment="JUSTIFY" BorderPane.alignment="CENTER" />
          </right>
          <left>
-            <Button alignment="CENTER" disable="true" focusTraversable="false" mnemonicParsing="false" text="Delete Selected" textAlignment="JUSTIFY" visible="false" BorderPane.alignment="CENTER" />
+            <Button alignment="CENTER" mnemonicParsing="false" onAction="#bigReset" text="Delete Selected" textAlignment="JUSTIFY" BorderPane.alignment="CENTER" />
          </left>
          <BorderPane.margin>
             <Insets left="20.0" right="20.0" />

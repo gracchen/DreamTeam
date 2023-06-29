@@ -135,7 +135,10 @@ public class DayController {
             }
         }
 	}
-
+	public void reset() {
+		tableview.getItems().clear();
+		tableview.refresh();
+	}
 	@FXML
 	public void dragOver(DragEvent event) {
 		if (event.getGestureSource() != tableview && event.getDragboard().hasContent(DataFormat.PLAIN_TEXT))
