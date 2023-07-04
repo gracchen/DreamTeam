@@ -1,5 +1,10 @@
 # DreamTeam
 
+### 7-3-2023
+- added custom hoverable tooltip (ToolTip class) to each task name cell in day table.
+- right click task name cells to insert link via alert popup
+- updates link to hyperlink inside tooltip upon change
+
 ### 6-26-2023
 - to include fxml inside another:
 	

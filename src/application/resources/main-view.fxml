@@ -7,6 +7,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
 <BorderPane fx:id="stage" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.java.Controller">
@@ -32,9 +33,28 @@
    </top>
    
 	<center>
-		<SplitPane dividerPositions="0.55" orientation="VERTICAL" prefWidth="${stage.width}" BorderPane.alignment="CENTER">
+		<SplitPane dividerPositions="0.55, 0.5" orientation="VERTICAL" prefWidth="${stage.width}" BorderPane.alignment="CENTER">
 			<items>
-				<HBox fx:id="calendar" />
+				<VBox fx:id="dayRows">
+					<HBox fx:id="week">
+						<fx:include fx:id="m" source="day.fxml" />
+						<fx:include fx:id="t" source="day.fxml" />
+						<fx:include fx:id="w" source="day.fxml" />
+						<fx:include fx:id="r" source="day.fxml" />
+						<fx:include fx:id="f" source="day.fxml" />
+						<fx:include fx:id="sa" source="day.fxml" />
+						<fx:include fx:id="su" source="day.fxml" />
+					</HBox>
+					<HBox fx:id="calendars">
+						<fx:include fx:id="m2" source="day.fxml" />
+						<fx:include fx:id="t2" source="day.fxml" />
+						<fx:include fx:id="w2" source="day.fxml" />
+						<fx:include fx:id="r2" source="day.fxml" />
+						<fx:include fx:id="f2" source="day.fxml" />
+						<fx:include fx:id="sa2" source="day.fxml" />
+						<fx:include fx:id="su2" source="day.fxml" />
+					</HBox>
+				</VBox>
 				<SplitPane fx:id="split" dividerPositions="0.22, 0.7" prefWidth="${stage.width}" BorderPane.alignment="CENTER">
 					<items>
 					 	<fx:include fx:id="menu" prefHeight="${split.height}" prefWidth="${split.width*0.3}" source="menu.fxml" />

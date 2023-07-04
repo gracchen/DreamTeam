@@ -1,7 +1,10 @@
 package application.java;
 	
 
+import java.awt.Desktop;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -21,6 +24,7 @@ public class Main extends Application {
 			root = (Parent)fxmlLoader.load();
 		} catch (IOException e) {e.printStackTrace();}
 		controller = fxmlLoader.<Controller>getController();
+		controller.setMain(this);
 		primaryStage.setTitle("Dream Team Go!");
 		Scene scene = new Scene(root, 1200, 700);
 		//scene.addEventFilter(MouseEvent.ANY, e -> System.out.println( e));
@@ -34,7 +38,13 @@ public class Main extends Application {
 		});
 	}
 	
+	public void openLink(String link) {
+	    System.out.println("Opening " + link);
+	    
+	}
 	public static void main(String[] args) {		
 		launch(args);
 	}
+
+
 }

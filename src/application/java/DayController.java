@@ -1,6 +1,8 @@
 package application.java;
 
 import java.sql.SQLException;
+import java.util.Optional;
+import java.util.AbstractMap.SimpleEntry;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -12,19 +14,32 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
+import javafx.util.Callback;
 import javafx.util.converter.IntegerStringConverter;
 
 public class DayController {
@@ -44,7 +59,7 @@ public class DayController {
 	private TableColumn<Task, Integer> percentCol;
 	@FXML
 	private TableView<Task> tableview;
-
+	private Main m;
 	ObservableList<Task> list = FXCollections.observableArrayList();
 	private Boolean mouseOut = true;
 
@@ -75,15 +90,18 @@ public class DayController {
 		initTable();
 	}
 
+	public void setMain(Main m) {
+		this.m = m;
+	}
 	public void deleteMenuID(int menuID) {
 		// Iterate over the rows and select the ones with matching menuID
-    	c.runSQL("delete from " + tableName.get() + " where menuID = " + menuID);
-    	ObservableList<Task> toDelete = FXCollections.observableArrayList();
+		c.runSQL("delete from " + tableName.get() + " where menuID = " + menuID);
+		ObservableList<Task> toDelete = FXCollections.observableArrayList();
 		for (Task rowData : tableview.getItems()) {
-            if (rowData.getMenuID() == menuID) {
-            	toDelete.add(rowData);
-            }
-        }
+			if (rowData.getMenuID() == menuID) {
+				toDelete.add(rowData);
+			}
+		}
 		list.removeAll(toDelete);
 		deselect();
 	}
@@ -94,14 +112,111 @@ public class DayController {
 
 		//set editable using textfield and built in integer conversion
 		percentCol.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
-		taskCol.setCellFactory(TextFieldTableCell.<Task>forTableColumn());
+		//taskCol.setCellFactory(TextFieldTableCell.<Task>forTableColumn());
+		taskCol.setCellFactory(column -> {
+			TableCell<Task, String> cell = new TableCell<Task, String>() {
+				private TextField textField;
+				private ToolTip tooltip = new ToolTip("");
+
+				@Override
+				public void updateItem(String item, boolean empty) {
+					
+					//handle right click to add that allows user to insert link, then updates tooltip link
+					setOnMouseClicked(event -> {
+						if (!isEmpty() && event.getButton() == MouseButton.SECONDARY) {
+							TextInputDialog dialog = new TextInputDialog();
+							dialog.setTitle("Link Insertion");
+							dialog.setHeaderText("Enter a link:");
+							Optional<String> result = dialog.showAndWait();
+
+							result.ifPresent(input -> {
+								Task target = list.get(getIndex());
+								target.setLink(input);
+								c.runSQL(String.format("update %s set link='%s' where id=%d;", tableName.get(), input.replaceAll("'", "''"), target.getId()));
+								putLink(target.getLink());
+							});
+
+						}
+					});
+					
+					super.updateItem(item, empty);
+
+					if (empty || item == null) {
+						setText(null);
+						setTooltip(null);
+					} 
+					else {
+						System.out.println("Updating " + item);
+						setText(item);
+						String link = getTableView().getItems().get(getIndex()).getLink();
+						if (link == null) setTooltip(null);
+						else putLink(link);
+					}
+				}
+
+				public void putLink(String link) {
+					Hyperlink hyperlink = new Hyperlink(link);
+					
+					hyperlink.setOnAction(e -> {
+						m.getHostServices().showDocument(link);
+						tooltip.hide();
+					});
+
+					tooltip.setGraphic(hyperlink);
+					setTooltip(tooltip);
+				}
+
+				@Override
+				public void startEdit() {
+					super.startEdit();
+					if (isEmpty()) {
+						return;
+					}
+					if (textField == null) {
+						createTextField();
+					}
+					textField.setText(getItem()); // Set initial text
+					setText(null);
+					setGraphic(textField);
+					setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+					textField.requestFocus();
+				}
+
+				@Override
+				public void cancelEdit() {
+					super.cancelEdit();
+					setText(getItem());
+					setGraphic(null);
+					setContentDisplay(ContentDisplay.TEXT_ONLY);
+				}
+
+				@Override
+				public void commitEdit(String newValue) {
+					super.commitEdit(newValue);
+					setText(newValue);
+					setGraphic(null);
+					setContentDisplay(ContentDisplay.TEXT_ONLY);
+				}
+
+				private void createTextField() {
+					textField = new TextField(getItem());
+					textField.setOnKeyPressed(event -> {
+						if (event.getCode() == KeyCode.ENTER) {
+							commitEdit(textField.getText());
+							event.consume();
+						}
+					});
+				}
+			};
+			return cell;
+		});
 
 		//edit listener to execute custom mysql updating code
 		taskCol.setOnEditCommit(e -> {
 			c.runSQL("update " + tableName.get() + " set name = \'" + e.getNewValue().replaceAll("'", "''") + "\' where id = " + e.getRowValue().getId());
 			e.getRowValue().setName(e.getNewValue());
 		});
-		
+
 		percentCol.setOnEditCommit(e -> {
 			int val = e.getNewValue();
 
@@ -125,15 +240,15 @@ public class DayController {
 
 		// Iterate over the rows and select the ones with matching menuID
 		for (Task rowData : tableview.getItems()) {
-        	//System.out.println("matches" + menuID + "? " + rowData.getName() + " " + rowData.getMenuID());
-            if (rowData.getMenuID() == menuID) {
-            	Platform.runLater(new Runnable() {
-            	    public void run() {
-            	    	tableview.getSelectionModel().select(rowData);
-            	    }
-            	});
-            }
-        }
+			//System.out.println("matches" + menuID + "? " + rowData.getName() + " " + rowData.getMenuID());
+			if (rowData.getMenuID() == menuID) {
+				Platform.runLater(new Runnable() {
+					public void run() {
+						tableview.getSelectionModel().select(rowData);
+					}
+				});
+			}
+		}
 	}
 	public void reset() {
 		tableview.getItems().clear();
@@ -217,7 +332,7 @@ public class DayController {
 		c.runSQL(String.format("delete from %s where id in(%s);", tableName.get(), idList));
 		list.removeAll(selectedItems);
 	}   
-	
+
 	@FXML
 	void enterDayPane(MouseEvent event) {
 		mouseOut = false;
@@ -226,15 +341,15 @@ public class DayController {
 	void deselect() {
 		tableview.getSelectionModel().clearSelection();
 	}
-	
+
 	public void editMenu(int menuID, String newVal) {
-    	c.runSQL("update " + tableName.get() + " set name = \'" + newVal.replaceAll("'", "''") + "\' where menuID = " + menuID);
+		c.runSQL("update " + tableName.get() + " set name = \'" + newVal.replaceAll("'", "''") + "\' where menuID = " + menuID);
 		for (Task rowData : tableview.getItems()) {
-            if (rowData.getMenuID() == menuID) {
-            	rowData.setName(newVal);
-            	tableview.getSelectionModel().select(rowData);
-            }
-        }
+			if (rowData.getMenuID() == menuID) {
+				rowData.setName(newVal);
+				tableview.getSelectionModel().select(rowData);
+			}
+		}
 	}
 
 	@FXML
@@ -256,11 +371,11 @@ public class DayController {
 	}
 
 	Boolean hasTask(int menuID) {
-		
+
 		for (Task task : list) {
-		    if (task.getMenuID() == menuID) {
-		        return true;
-		    }
+			if (task.getMenuID() == menuID) {
+				return true;
+			}
 		}
 		return false;
 	}
