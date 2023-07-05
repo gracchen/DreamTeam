@@ -1,8 +1,8 @@
 package application.java;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Optional;
-import java.util.AbstractMap.SimpleEntry;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -14,21 +14,16 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.DataFormat;
@@ -39,7 +34,6 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
-import javafx.util.Callback;
 import javafx.util.converter.IntegerStringConverter;
 
 public class DayController {
@@ -60,7 +54,9 @@ public class DayController {
 	@FXML
 	private TableView<Task> tableview;
 	private Main m;
+	private LocalDate day;
 	ObservableList<Task> list = FXCollections.observableArrayList();
+	ObservableList<Task> linkStyledCells = FXCollections.observableArrayList();
 	private Boolean mouseOut = true;
 
 	@FXML
@@ -95,7 +91,7 @@ public class DayController {
 	}
 	public void deleteMenuID(int menuID) {
 		// Iterate over the rows and select the ones with matching menuID
-		c.runSQL("delete from " + tableName.get() + " where menuID = " + menuID);
+		c.runSQL("delete from MasterTasks where menuID = " + menuID);
 		ObservableList<Task> toDelete = FXCollections.observableArrayList();
 		for (Task rowData : tableview.getItems()) {
 			if (rowData.getMenuID() == menuID) {
@@ -120,25 +116,31 @@ public class DayController {
 
 				@Override
 				public void updateItem(String item, boolean empty) {
-					
+
 					//handle right click to add that allows user to insert link, then updates tooltip link
 					setOnMouseClicked(event -> {
 						if (!isEmpty() && event.getButton() == MouseButton.SECONDARY) {
-							TextInputDialog dialog = new TextInputDialog();
+							Task target = list.get(getIndex());
+							TextInputDialog dialog = new TextInputDialog(target.getLink());
 							dialog.setTitle("Link Insertion");
 							dialog.setHeaderText("Enter a link:");
 							Optional<String> result = dialog.showAndWait();
 
 							result.ifPresent(input -> {
-								Task target = list.get(getIndex());
-								target.setLink(input);
-								c.runSQL(String.format("update %s set link='%s' where id=%d;", tableName.get(), input.replaceAll("'", "''"), target.getId()));
-								putLink(target.getLink());
+								if (input.length() == 0) {
+									target.setLink(null);
+									c.runSQL(String.format("update MasterTasks set link=NULL where id=%d;", target.getId()));
+									putLink(null);
+								}
+								else {
+									target.setLink(input);
+									c.runSQL(String.format("update MasterTasks set link='%s' where id=%d;", input.replaceAll("'", "''"), target.getId()));
+									putLink(target.getLink());
+								}
 							});
-
 						}
 					});
-					
+
 					super.updateItem(item, empty);
 
 					if (empty || item == null) {
@@ -155,15 +157,29 @@ public class DayController {
 				}
 
 				public void putLink(String link) {
+					if (link == null) {
+						System.out.println("removing link!");
+						setTooltip(null); //removes link
+						if (getStyleClass().contains("link")) { //but still styled as a link
+							getStyleClass().removeAll("link");
+							setStyle("");
+						}
+						return;
+					}
+
 					Hyperlink hyperlink = new Hyperlink(link);
-					
+
 					hyperlink.setOnAction(e -> {
 						m.getHostServices().showDocument(link);
 						tooltip.hide();
 					});
 
 					tooltip.setGraphic(hyperlink);
-					setTooltip(tooltip);
+					setTooltip(tooltip); //add link
+					if (!getStyleClass().contains("link")) { //but still not styled as a link
+						getStyleClass().add("link");
+						setStyle("-fx-underline: true;");
+					}
 				}
 
 				@Override
@@ -213,7 +229,7 @@ public class DayController {
 
 		//edit listener to execute custom mysql updating code
 		taskCol.setOnEditCommit(e -> {
-			c.runSQL("update " + tableName.get() + " set name = \'" + e.getNewValue().replaceAll("'", "''") + "\' where id = " + e.getRowValue().getId());
+			c.runSQL("update MasterTasks set name = \'" + e.getNewValue().replaceAll("'", "''") + "\' where id = " + e.getRowValue().getId());
 			e.getRowValue().setName(e.getNewValue());
 		});
 
@@ -226,7 +242,7 @@ public class DayController {
 			}
 			else { //commit to sql
 				e.getRowValue().setProgress(val);
-				c.runSQL("update " + tableName.get() + " set progress = \'" + val + "\' where id = " + e.getRowValue().getId());
+				c.runSQL("update MasterTasks set progress = \'" + val + "\' where id = " + e.getRowValue().getId());
 			}
 		});
 
@@ -277,7 +293,7 @@ public class DayController {
 
 	void loadData() {
 		list.clear();
-		c.runSQL("select * from " + tableName.get() + ";");		
+		c.runSQL(String.format("select * from MasterTasks where day='%s';", day));		
 		//int id, String name, int menuID, int progress, String link
 		try {
 			while(c.rs.next()) {
@@ -286,10 +302,9 @@ public class DayController {
 		} catch (SQLException e1) {e1.printStackTrace();}
 	}
 
-
 	Boolean addEntry(String name, int menuID) {
-		c.runSQL(String.format("insert into %s (name, menuID, progress) values ('%s','%d','0');", tableName.get(), name.replaceAll("'", "''"), menuID));	
-		c.runSQL(String.format("select * from %s order by id desc limit 1", tableName.get()));	//get id of the last added row
+		c.runSQL(String.format("insert into MasterTasks (day, name, menuID, progress) values ('%s','%s','%d','0');", day, name.replaceAll("'", "''"), menuID));	
+		c.runSQL("select * from MasterTasks order by id desc limit 1");	//get id of the last added row
 		try {
 			if (c.rs.next()) {
 				list.add(new Task(c.rs.getInt("id"), name, menuID, 0, null));
@@ -329,7 +344,7 @@ public class DayController {
 			idList.append(",");
 			idList.append(String.valueOf(task.getId()));
 		}
-		c.runSQL(String.format("delete from %s where id in(%s);", tableName.get(), idList));
+		c.runSQL(String.format("delete from MasterTasks where id in(%s);", idList));
 		list.removeAll(selectedItems);
 	}   
 
@@ -343,7 +358,7 @@ public class DayController {
 	}
 
 	public void editMenu(int menuID, String newVal) {
-		c.runSQL("update " + tableName.get() + " set name = \'" + newVal.replaceAll("'", "''") + "\' where menuID = " + menuID);
+		c.runSQL("update MasterTasks set name = \'" + newVal.replaceAll("'", "''") + "\' where menuID = " + menuID);
 		for (Task rowData : tableview.getItems()) {
 			if (rowData.getMenuID() == menuID) {
 				rowData.setName(newVal);
@@ -361,11 +376,9 @@ public class DayController {
 		return mouseOut;
 	}
 
-	void setTableName(String name) {
+	void initializeVals(String name, LocalDate day, Connect c) {
+		this.day = day;
 		tableName.set(name); //handle for main controller to tell me what table to pull from
-	}
-
-	void setConnect(Connect c) {
 		this.c = c;
 		loadData();
 	}

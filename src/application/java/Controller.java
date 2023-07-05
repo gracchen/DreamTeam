@@ -51,31 +51,39 @@ public class Controller {
 		LocalDate today = LocalDate.now();
 		DayOfWeek dayOfWeek = today.getDayOfWeek();
 		int dayOfWeekValue = (dayOfWeek.getValue() - 1) % 7;
-		dayRows.getChildren().remove(calendars);
+		//dayRows.getChildren().remove(calendars);
+		
 		VBox.setVgrow(week, Priority.ALWAYS);
 		DayController[] ct = {mController, tController, wController, rController, fController, saController, suController}; System.arraycopy(ct,0,controllers,0,7);
 		Parent[] ro = {m,t,w,r,f,sa,su}; System.arraycopy(ro,0,roots,0,7);
 		
-		DayController[] ct2 = {m2Controller, t2Controller, w2Controller, r2Controller, f2Controller, sa2Controller, su2Controller}; System.arraycopy(ct2,0,calControllers,0,7);
-		Parent[] ro2 = {m2,t2,w2,r2,f2,sa2,su2}; System.arraycopy(ro2,0,calRoots,0,7);
+		/*		DayController[] ct2 = {m2Controller, t2Controller, w2Controller, r2Controller, f2Controller, sa2Controller, su2Controller}; System.arraycopy(ct2,0,calControllers,0,7);
+				Parent[] ro2 = {m2,t2,w2,r2,f2,sa2,su2}; System.arraycopy(ro2,0,calRoots,0,7);
+				*/
+		
+		LocalDate thisWeek = LocalDate.now();
+		while (thisWeek.getDayOfWeek() != DayOfWeek.MONDAY) {
+			thisWeek = thisWeek.minusDays(1);
+		}
 		
 		for (int i = 0; i < 7; i++) {
-			controllers[i].setTableName(weekdays[i]);	//names the fxmls so they know which table in charge of
-			controllers[i].setConnect(c);	//gives each day access to a shared sql connection
+			controllers[i].initializeVals(weekdays[i],thisWeek.plusDays(i),c);
+			//controllers[i].setTableName(weekdays[i]);	//names the fxmls so they know which table in charge of
+			//controllers[i].setConnect(c);	//gives each day access to a shared sql connection
 			HBox.setHgrow(roots[i], Priority.ALWAYS); //allow tableview to grow if greater than pref dimensions
 			if (dayOfWeekValue == i) {
 				controllers[i].highlight();
 			}
 		}
 		
-		for (int i = 0; i < 7; i++) {
-			calControllers[i].setTableName(weekdays[i]);	//names the fxmls so they know which table in charge of
-			calControllers[i].setConnect(c);	//gives each day access to a shared sql connection
-			HBox.setHgrow(calRoots[i], Priority.ALWAYS); //allow tableview to grow if greater than pref dimensions
-			if (dayOfWeekValue == i) {
-				calControllers[i].highlight();
-			}
-		}
+		/*		for (int i = 0; i < 7; i++) {
+					calControllers[i].setTableName(weekdays[i]);	//names the fxmls so they know which table in charge of
+					calControllers[i].setConnect(c);	//gives each day access to a shared sql connection
+					HBox.setHgrow(calRoots[i], Priority.ALWAYS); //allow tableview to grow if greater than pref dimensions
+					if (dayOfWeekValue == i) {
+						calControllers[i].highlight();
+					}
+				}*/
 		
 		menuController.setMain(this);
 		menuController.setConnect(c);
@@ -93,27 +101,27 @@ public class Controller {
 	@FXML
 	public void bigReset(ActionEvent e) {
 	
-		for (int i = 0; i < 7; i++) {
-			c.runSQL("truncate table " + weekdays[i] + ";");
-			controllers[i].reset();
-		}
-		c.runSQL("select * from Rules;");
-		List<Rule> a = new LinkedList<Rule>();
-		try {
-			while(c.rs.next()) {
-				a.add(new Rule(c.rs.getInt("id"),c.rs.getString("name"),c.rs.getInt("menuID"),  c.rs.getBoolean("mon"), c.rs.getBoolean("tues"), 
-						c.rs.getBoolean("wed"), c.rs.getBoolean("thurs"), c.rs.getBoolean("fri"), c.rs.getBoolean("sat"), c.rs.getBoolean("sun"), c));
-			}
-		} catch (SQLException e1) {e1.printStackTrace();}
-		for (Rule r : a) {
-            if (r.isMon()) controllers[0].addEntry(r.getName(), r.getMenuID());
-            if (r.isTues()) controllers[1].addEntry(r.getName(), r.getMenuID());
-            if (r.isWed()) controllers[2].addEntry(r.getName(), r.getMenuID());
-            if (r.isThurs()) controllers[3].addEntry(r.getName(), r.getMenuID());
-            if (r.isFri()) controllers[4].addEntry(r.getName(), r.getMenuID());
-            if (r.isSat()) controllers[5].addEntry(r.getName(), r.getMenuID());
-            if (r.isSun()) controllers[6].addEntry(r.getName(), r.getMenuID());
-		}
+		/*		for (int i = 0; i < 7; i++) {
+					c.runSQL("truncate table " + weekdays[i] + ";");
+					controllers[i].reset();
+				}
+				c.runSQL("select * from Rules;");
+				List<Rule> a = new LinkedList<Rule>();
+				try {
+					while(c.rs.next()) {
+						a.add(new Rule(c.rs.getInt("id"),c.rs.getString("name"),c.rs.getInt("menuID"),  c.rs.getBoolean("mon"), c.rs.getBoolean("tues"), 
+								c.rs.getBoolean("wed"), c.rs.getBoolean("thurs"), c.rs.getBoolean("fri"), c.rs.getBoolean("sat"), c.rs.getBoolean("sun"), c));
+					}
+				} catch (SQLException e1) {e1.printStackTrace();}
+				for (Rule r : a) {
+		    if (r.isMon()) controllers[0].addEntry(r.getName(), r.getMenuID());
+		    if (r.isTues()) controllers[1].addEntry(r.getName(), r.getMenuID());
+		    if (r.isWed()) controllers[2].addEntry(r.getName(), r.getMenuID());
+		    if (r.isThurs()) controllers[3].addEntry(r.getName(), r.getMenuID());
+		    if (r.isFri()) controllers[4].addEntry(r.getName(), r.getMenuID());
+		    if (r.isSat()) controllers[5].addEntry(r.getName(), r.getMenuID());
+		    if (r.isSun()) controllers[6].addEntry(r.getName(), r.getMenuID());
+				}*/
 	}
 
 	public void highlightMenuID(int menuID) {

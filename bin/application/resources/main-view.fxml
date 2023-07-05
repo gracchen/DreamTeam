@@ -33,7 +33,7 @@
    </top>
    
 	<center>
-		<SplitPane dividerPositions="0.55, 0.5" orientation="VERTICAL" prefWidth="${stage.width}" BorderPane.alignment="CENTER">
+		<SplitPane dividerPositions="0.62" orientation="VERTICAL" prefWidth="${stage.width}" BorderPane.alignment="CENTER">
 			<items>
 				<VBox fx:id="dayRows">
 					<HBox fx:id="week">
@@ -59,10 +59,7 @@
 					<items>
 					 	<fx:include fx:id="menu" prefHeight="${split.height}" prefWidth="${split.width*0.3}" source="menu.fxml" />
 						<fx:include fx:id="rule" minWidth="270" prefHeight="${split.height}" prefWidth="${split.width*0.3}" source="rule.fxml" /> 
-						<AnchorPane>
-								<Label text="AYYYO" />
-								<Button mnemonicParsing="false" text="Button" />
-						</AnchorPane>
+						<fx:include fx:id="calendar" minWidth="${stage.width*0.26}" prefHeight="${split.height}" source="calendar.fxml" /> 
 					</items>
 				</SplitPane>
 			</items>
