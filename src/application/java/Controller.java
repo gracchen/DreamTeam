@@ -1,10 +1,8 @@
 package application.java;
 
-import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.LinkedList;
-import java.util.List;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 import javafx.event.ActionEvent;
@@ -22,25 +20,42 @@ import javafx.scene.layout.VBox;
 
 public class Controller {
 	private Connect c;
-	String[] weekdays = {"Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"};
-	
-	@FXML private HBox calendars;
-	@FXML private HBox week;
-	@FXML private SplitPane split;
-	@FXML private BorderPane stage;
-	@FXML private VBox dayRows;
-	@FXML private Parent menu;
-	@FXML private MenuController menuController;
-	@FXML private Parent rule;
-	@FXML private RuleController ruleController;
-	@FXML private Parent m,t,w,r,f,sa,su;
-	@FXML private Parent m2,t2,w2,r2,f2,sa2,su2;
-	@FXML private DayController mController, tController, wController, rController, fController, saController, suController;
-	@FXML private DayController m2Controller, t2Controller, w2Controller, r2Controller, f2Controller, sa2Controller, su2Controller;
+	String[] weekdays = { "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun" };
+
+	@FXML
+	private HBox calendars;
+	@FXML
+	private HBox week;
+	@FXML
+	private SplitPane split;
+	@FXML
+	private BorderPane stage;
+	@FXML
+	private VBox dayRows;
+	@FXML
+	private Parent menu;
+	@FXML
+	private MenuController menuController;
+	@FXML
+	private Parent rule;
+	@FXML
+	private RuleController ruleController;
+	@FXML
+	private Parent m, t, w, r, f, sa, su;
+	@FXML
+	private Parent m2, t2, w2, r2, f2, sa2, su2;
+	@FXML
+	private DayController mController, tController, wController, rController, fController, saController, suController;
+	@FXML
+	private DayController m2Controller, t2Controller, w2Controller, r2Controller, f2Controller, sa2Controller,
+	su2Controller;
+	@FXML private CalendarController calendarController;
+	@FXML private Parent calendar;
 	DayController[] controllers = new DayController[7];
 	DayController[] calControllers = new DayController[7];
 	Parent[] roots = new Parent[7];
 	Parent[] calRoots = new Parent[7];
+	LocalDate calDay,thisWeek;
 	@FXML
 	private void initialize() {
 		System.out.println("initializing....");
@@ -51,23 +66,28 @@ public class Controller {
 		LocalDate today = LocalDate.now();
 		DayOfWeek dayOfWeek = today.getDayOfWeek();
 		int dayOfWeekValue = (dayOfWeek.getValue() - 1) % 7;
-		//dayRows.getChildren().remove(calendars);
-		
+		dayRows.getChildren().remove(calendars);
+
 		VBox.setVgrow(week, Priority.ALWAYS);
-		DayController[] ct = {mController, tController, wController, rController, fController, saController, suController}; System.arraycopy(ct,0,controllers,0,7);
-		Parent[] ro = {m,t,w,r,f,sa,su}; System.arraycopy(ro,0,roots,0,7);
-		
-		/*		DayController[] ct2 = {m2Controller, t2Controller, w2Controller, r2Controller, f2Controller, sa2Controller, su2Controller}; System.arraycopy(ct2,0,calControllers,0,7);
-				Parent[] ro2 = {m2,t2,w2,r2,f2,sa2,su2}; System.arraycopy(ro2,0,calRoots,0,7);
-				*/
-		
-		LocalDate thisWeek = LocalDate.now();
+		DayController[] ct = { mController, tController, wController, rController, fController, saController,
+				suController };
+		System.arraycopy(ct, 0, controllers, 0, 7);
+		Parent[] ro = { m, t, w, r, f, sa, su };
+		System.arraycopy(ro, 0, roots, 0, 7);
+
+		DayController[] ct2 = { m2Controller, t2Controller, w2Controller, r2Controller, f2Controller, sa2Controller,
+				su2Controller };
+		System.arraycopy(ct2, 0, calControllers, 0, 7);
+		Parent[] ro2 = { m2, t2, w2, r2, f2, sa2, su2 };
+		System.arraycopy(ro2, 0, calRoots, 0, 7);
+
+		thisWeek = LocalDate.now();
 		while (thisWeek.getDayOfWeek() != DayOfWeek.MONDAY) {
 			thisWeek = thisWeek.minusDays(1);
 		}
-		
+
 		for (int i = 0; i < 7; i++) {
-			controllers[i].initializeVals(weekdays[i],thisWeek.plusDays(i),c);
+			controllers[i].initializeVals(weekdays[i], thisWeek.plusDays(i), c);
 			//controllers[i].setTableName(weekdays[i]);	//names the fxmls so they know which table in charge of
 			//controllers[i].setConnect(c);	//gives each day access to a shared sql connection
 			HBox.setHgrow(roots[i], Priority.ALWAYS); //allow tableview to grow if greater than pref dimensions
@@ -75,32 +95,50 @@ public class Controller {
 				controllers[i].highlight();
 			}
 		}
-		
-		/*		for (int i = 0; i < 7; i++) {
-					calControllers[i].setTableName(weekdays[i]);	//names the fxmls so they know which table in charge of
-					calControllers[i].setConnect(c);	//gives each day access to a shared sql connection
-					HBox.setHgrow(calRoots[i], Priority.ALWAYS); //allow tableview to grow if greater than pref dimensions
-					if (dayOfWeekValue == i) {
-						calControllers[i].highlight();
-					}
-				}*/
-		
+
 		menuController.setMain(this);
 		menuController.setConnect(c);
-
+		calendarController.setMain(this);
 		//ruleController.setMain(this);
 		ruleController.setConnect(c);
 	}
-	
+
+	public void showCalendarWeek(LocalDate a) {
+		System.out.println(a);
+		if (thisWeek.equals(a)) {
+			hideCalendarWeek();
+			return;
+		}
+		if (!dayRows.getChildren().contains(calendars)) {
+			dayRows.getChildren().add(calendars);
+			calDay = a;
+		}
+		else {
+			if (calDay.equals(a)) return; //same week do nothing
+		}
+		for (int i = 0; i < 7; i++) {
+			calControllers[i].initializeVals(weekdays[i], a.plusDays(i),c);
+			HBox.setHgrow(calRoots[i], Priority.ALWAYS); //allow tableview to grow if greater than pref dimensions
+		}
+	}
+
+	public void hideCalendarWeek() {
+		dayRows.getChildren().remove(calendars);
+		calDay = null;
+	}
+
 	public void setMain(Main m) {
 		for (int i = 0; i < 7; i++) {
 			controllers[i].setMain(m);
+		}
+		for (int i = 0; i < 7; i++) {
+			calControllers[i].setMain(m);
 		}
 	}
 
 	@FXML
 	public void bigReset(ActionEvent e) {
-	
+
 		/*		for (int i = 0; i < 7; i++) {
 					c.runSQL("truncate table " + weekdays[i] + ";");
 					controllers[i].reset();
@@ -131,26 +169,29 @@ public class Controller {
 		}
 		ruleController.highlight(menuID);
 	}
+
 	public void editMenu(int menuID, String newVal) {
-		ruleController.updateEntry(menuID,newVal);
+		ruleController.updateEntry(menuID, newVal);
 		Boolean doAlert = false;
 		for (int i = 0; i < 7 && !doAlert; i++) {
 			if (controllers[i].hasTask(menuID))
 				doAlert = true;
 		}
-		if (!doAlert) return; //do nothing
+		if (!doAlert)
+			return; //do nothing
 		//otherwise ask
 		ButtonType yes = new ButtonType("yes", ButtonBar.ButtonData.OK_DONE);
 		ButtonType no = new ButtonType("no", ButtonBar.ButtonData.CANCEL_CLOSE);
-		Alert alert = new Alert(AlertType.NONE, "Do you want the rename to apply to all instances within the week?", yes, no);
+		Alert alert = new Alert(AlertType.NONE, "Do you want the rename to apply to all instances within the week?",
+				yes, no);
 		alert.setTitle("Rename all?");
 
 		Optional<ButtonType> result = alert.showAndWait();
 
 		if (result.get() == yes) {
-			System.out.println("editMenuID(" + menuID + ", "+ newVal + ");");
+			System.out.println("editMenuID(" + menuID + ", " + newVal + ");");
 			for (int i = 0; i < 7; i++) {
-				controllers[i].editMenu(menuID,newVal);
+				controllers[i].editMenu(menuID, newVal);
 			}
 		}
 	}
@@ -162,7 +203,8 @@ public class Controller {
 			if (controllers[i].hasTask(menuID))
 				doAlert = true;
 		}
-		if (!doAlert) return; //do nothing
+		if (!doAlert)
+			return; //do nothing
 
 		ButtonType yes = new ButtonType("yes", ButtonBar.ButtonData.OK_DONE);
 		ButtonType no = new ButtonType("no", ButtonBar.ButtonData.CANCEL_CLOSE);

@@ -3,16 +3,20 @@ package application.java;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.ArrayList;
+import java.util.List;
 
 import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.HPos;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
@@ -24,8 +28,10 @@ public class CalendarController {
 	@FXML private Button leftButton, rightButton;    
 	@FXML private Label monthLabel;
 	@FXML private GridPane grid;
+	@FXML private List<Label> labels = new ArrayList<Label>();
 	Month curMonth;
 	int curYear;
+	Controller c;
 	private PauseTransition delay;
 	@FXML
 	void initialize() {
@@ -89,19 +95,56 @@ public class CalendarController {
 		
 		int j = 0;
 		Label l1 = new Label("1");
+		if (LocalDate.now().equals(cur))
+			l1.setStyle("-fx-background-color: yellow;");
+
+		l1.setMaxWidth(100000);
+		l1.setMaxHeight(100000);
+		l1.setAlignment(Pos.CENTER);
 		grid.add(l1, (cur.getDayOfWeek().getValue()-1), j);
 		GridPane.setHalignment(l1, HPos.CENTER);
+		labels.add(l1);
+		l1.setOnMouseClicked(e -> {
+			System.out.println(curMonth + " " + l1.getText() + ", " + curYear);
+			LocalDate selected = LocalDate.of(curYear,curMonth,Integer.valueOf(l1.getText()));
+			while (selected.getDayOfWeek() != DayOfWeek.MONDAY) {
+				selected = selected.minusDays(1);
+			}
+			c.showCalendarWeek(selected);
+		});
+		l1.setOnMouseEntered(e -> {l1.setStyle("-fx-background-color: lightgray;");});
+		l1.setOnMouseExited(e -> {l1.setStyle((LocalDate.now().equals(LocalDate.of(curYear, curMonth, Integer.valueOf(l1.getText()))))? 
+			"-fx-background-color: yellow;": null);});
 		
 		for (int i = 1; i < cur.lengthOfMonth(); i++) {
 			if (cur.plusDays(i).getDayOfWeek() == DayOfWeek.MONDAY) {
 				j++;
 			}
 			Label l = new Label(String.valueOf(i+1));
+			if (LocalDate.now().equals(cur.plusDays(i)))
+				l.setStyle("-fx-background-color: yellow;");
+			l.setMaxWidth(100000); l.setMaxHeight(100000); l.setAlignment(Pos.CENTER);
+			labels.add(l);
+			l.setOnMouseClicked(e -> {
+				System.out.println(curMonth + " " + l.getText() + ", " + curYear);
+				LocalDate selected = LocalDate.of(curYear,curMonth,Integer.valueOf(l.getText()));
+				while (selected.getDayOfWeek() != DayOfWeek.MONDAY) {
+					selected = selected.minusDays(1);
+				}
+				c.showCalendarWeek(selected);
+			});
+			l.setOnMouseEntered(e -> {l.setStyle("-fx-background-color: lightgray;");});
+			l.setOnMouseExited(e -> {l.setStyle((LocalDate.now().equals(LocalDate.of(curYear, curMonth, Integer.valueOf(l.getText()))))? 
+					"-fx-background-color: yellow;": null);});
 			GridPane.setHalignment(l, HPos.CENTER);
 			grid.add(l,(cur.plusDays(i).getDayOfWeek().getValue()-1),j);
 		}
 	}
-
+	
+	void setMain(Controller c) {
+		this.c = c;
+	}
+	
 	void setLabel() {
 		String text = curMonth.toString();
 		text = String.valueOf(text.charAt(0)) + text.substring(1).toLowerCase();

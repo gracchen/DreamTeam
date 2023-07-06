@@ -378,7 +378,7 @@ public class DayController {
 
 	void initializeVals(String name, LocalDate day, Connect c) {
 		this.day = day;
-		tableName.set(name); //handle for main controller to tell me what table to pull from
+		tableName.set(name + day); //handle for main controller to tell me what table to pull from
 		this.c = c;
 		loadData();
 	}
