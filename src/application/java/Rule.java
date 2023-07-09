@@ -1,7 +1,5 @@
 package application.java;
 
-import java.sql.SQLException;
-
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -20,7 +18,8 @@ public class Rule {
     private BooleanProperty fri;
     private BooleanProperty sat;
     private BooleanProperty sun;
-    private Connect c;
+    @SuppressWarnings("unused")
+	private Connect c;
     
     public Rule(int id, String name, int menuID, Boolean mon,
     		Boolean tues, Boolean wed, Boolean thurs, Boolean fri, Boolean sat,

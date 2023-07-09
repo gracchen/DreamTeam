@@ -1,5 +1,13 @@
 # DreamTeam
 
+### 7-7-2023
+- highlight all instances of rules in current week when select from rule menu
+- rules can optionally be tied to a menuID and renamed/highlighted as such
+- interactive calendar to select weeks in future/past and view/edit them in 2nd row of days
+- collapse 2nd row by clicking current week
+- increased 
+
+
 ### 7-3-2023
 - added custom hoverable tooltip (ToolTip class) to each task name cell in day table.
 - right click task name cells to insert link via alert popup

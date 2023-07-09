@@ -19,7 +19,6 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
-import javafx.util.converter.IntegerStringConverter;
 
 public class RuleController {
 	private Connect c;
@@ -37,11 +36,25 @@ public class RuleController {
 	@FXML private TableColumn<Rule, Boolean> satCol;
 	@FXML private TableColumn<Rule, Boolean> sunCol;
 	@FXML private TableView<Rule> tableview;
-
+	private Controller main; 
+	Boolean mouseInRule = false;
 	ObservableList<Rule> list = FXCollections.observableArrayList();
 	
 	private Boolean mouseOut = true;
 
+    Boolean getMouseInRule() {
+    	return mouseInRule;
+    }
+    
+	@FXML
+	void enterTable(MouseEvent event) {
+		mouseInRule = true;
+	}	
+	@FXML
+	void exitTable(MouseEvent event) {
+		mouseInRule = false;
+	}
+	
 	@FXML
 	private void initialize() {
 		//LAYOUT binding
@@ -81,7 +94,7 @@ public class RuleController {
 		
 	}
 	
-	void highlight(int menuID) { 
+	void highlightMenu(int menuID) { 
 		tableview.getSelectionModel().clearSelection(); // Clear any existing selections
 
 		// Iterate over the rows and select the ones with matching menuID
@@ -96,6 +109,18 @@ public class RuleController {
             }
         }
 	}
+	
+    void setMain(Controller m) {
+    	main = m;
+    	tableview.getSelectionModel().selectedItemProperty().addListener(e -> {
+    		//System.out.println("selection changed!");
+    		if (main != null & tableview.getSelectionModel().getSelectedIndex() != -1) {
+    			main.highlightRuleID(tableview.getSelectionModel().getSelectedItem().getId());
+    		}
+    		
+    	});
+    }
+
 
 	void loadData() {
 		list.clear();
@@ -202,4 +227,6 @@ public class RuleController {
 		this.c = c;
 		loadData();
 	}
+
+
 }

@@ -9,13 +9,15 @@ public class Task {
     private IntegerProperty id;
     private StringProperty name;
     private IntegerProperty menuID;
+    private IntegerProperty ruleID;
     private IntegerProperty progress;
     private StringProperty link;
 
-    public Task(int id, String name, int menuID, int progress, String link) {
+    public Task(int id, String name, int menuID, int ruleID, int progress, String link) {
         this.id = new SimpleIntegerProperty(id);
         this.name = new SimpleStringProperty(name);
         this.menuID = new SimpleIntegerProperty(menuID);
+        this.ruleID = new SimpleIntegerProperty(ruleID);
         this.progress = new SimpleIntegerProperty(progress);
         this.link = new SimpleStringProperty(link);
     }
@@ -52,6 +54,14 @@ public class Task {
         this.menuID.set(menuID);
     }
 
+    public int getRuleID() {
+        return ruleID.get();
+    }
+
+    public void setRuleID(int ruleID) {
+        this.ruleID.set(ruleID);
+    }
+    
     public IntegerProperty menuIDProperty() {
         return menuID;
     }

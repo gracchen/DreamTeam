@@ -1,8 +1,10 @@
 package application.java;
 
+import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 
 import javafx.event.ActionEvent;
@@ -97,10 +99,15 @@ public class Controller {
 		}
 
 		menuController.setMain(this);
+		ruleController.setMain(this);
 		menuController.setConnect(c);
-		calendarController.setMain(this);
+		calendarController.setMain(this, c);
 		//ruleController.setMain(this);
 		ruleController.setConnect(c);
+		
+		for (int i = 0; i < 7; i++)  {
+			if (controllers[i].hasRules() == false) bigReset(null);
+		}
 	}
 
 	public void showCalendarWeek(LocalDate a) {
@@ -120,6 +127,7 @@ public class Controller {
 			calControllers[i].initializeVals(weekdays[i], a.plusDays(i),c);
 			HBox.setHgrow(calRoots[i], Priority.ALWAYS); //allow tableview to grow if greater than pref dimensions
 		}
+		calDay = a;
 	}
 
 	public void hideCalendarWeek() {
@@ -129,45 +137,52 @@ public class Controller {
 
 	public void setMain(Main m) {
 		for (int i = 0; i < 7; i++) {
-			controllers[i].setMain(m);
+			controllers[i].setMain(m, this);
 		}
 		for (int i = 0; i < 7; i++) {
-			calControllers[i].setMain(m);
+			calControllers[i].setMain(m, this);
 		}
 	}
 
 	@FXML
 	public void bigReset(ActionEvent e) {
-
-		/*		for (int i = 0; i < 7; i++) {
-					c.runSQL("truncate table " + weekdays[i] + ";");
-					controllers[i].reset();
-				}
-				c.runSQL("select * from Rules;");
-				List<Rule> a = new LinkedList<Rule>();
-				try {
-					while(c.rs.next()) {
-						a.add(new Rule(c.rs.getInt("id"),c.rs.getString("name"),c.rs.getInt("menuID"),  c.rs.getBoolean("mon"), c.rs.getBoolean("tues"), 
-								c.rs.getBoolean("wed"), c.rs.getBoolean("thurs"), c.rs.getBoolean("fri"), c.rs.getBoolean("sat"), c.rs.getBoolean("sun"), c));
-					}
-				} catch (SQLException e1) {e1.printStackTrace();}
-				for (Rule r : a) {
-		    if (r.isMon()) controllers[0].addEntry(r.getName(), r.getMenuID());
-		    if (r.isTues()) controllers[1].addEntry(r.getName(), r.getMenuID());
-		    if (r.isWed()) controllers[2].addEntry(r.getName(), r.getMenuID());
-		    if (r.isThurs()) controllers[3].addEntry(r.getName(), r.getMenuID());
-		    if (r.isFri()) controllers[4].addEntry(r.getName(), r.getMenuID());
-		    if (r.isSat()) controllers[5].addEntry(r.getName(), r.getMenuID());
-		    if (r.isSun()) controllers[6].addEntry(r.getName(), r.getMenuID());
-				}*/
+		
+		for (int i = 0; i < 7; i++) {
+			controllers[i].resetRules();
+		}
+		
+		c.runSQL("select * from Rules;");
+		List<Rule> a = new LinkedList<Rule>();
+		try {
+			while(c.rs.next()) {
+				a.add(new Rule(c.rs.getInt("id"),c.rs.getString("name"),c.rs.getInt("menuID"),c.rs.getBoolean("mon"), c.rs.getBoolean("tues"), 
+						c.rs.getBoolean("wed"), c.rs.getBoolean("thurs"), c.rs.getBoolean("fri"), c.rs.getBoolean("sat"), c.rs.getBoolean("sun"), c));
+			}
+		} catch (SQLException e1) {e1.printStackTrace();}
+		for (Rule r : a) {
+			if (r.isMon()) controllers[0].addEntry(r.getName(), r.getMenuID(), r.getId());
+			if (r.isTues()) controllers[1].addEntry(r.getName(), r.getMenuID(), r.getId());
+			if (r.isWed()) controllers[2].addEntry(r.getName(), r.getMenuID(), r.getId());
+			if (r.isThurs()) controllers[3].addEntry(r.getName(), r.getMenuID(), r.getId());
+			if (r.isFri()) controllers[4].addEntry(r.getName(),  r.getMenuID(),r.getId());
+			if (r.isSat()) controllers[5].addEntry(r.getName(),  r.getMenuID(),r.getId());
+			if (r.isSun()) controllers[6].addEntry(r.getName(), r.getMenuID(), r.getId());
+		}
 	}
 
 	public void highlightMenuID(int menuID) {
 		System.out.println("highlightMenuID(" + menuID + ");");
 		for (int i = 0; i < 7; i++) {
-			controllers[i].highlight(menuID);
+			controllers[i].highlightMenu(menuID);
 		}
-		ruleController.highlight(menuID);
+		ruleController.highlightMenu(menuID);
+	}
+	
+	public void highlightRuleID(int ruleID) {
+		System.out.println("highlightMenuID(" + ruleID + ");");
+		for (int i = 0; i < 7; i++) {
+			controllers[i].highlightRule(ruleID);
+		}
 	}
 
 	public void editMenu(int menuID, String newVal) {
@@ -227,7 +242,7 @@ public class Controller {
 		for (int i = 0; i < 7 && !mouseInADayPane; i++) {
 			mouseInADayPane = !controllers[i].getMouseOut();
 		}
-		if (menuController.getMouseInMenu() == false) {
+		if (menuController.getMouseInMenu() == false && ruleController.getMouseInRule() == false) {
 			if (!mouseInADayPane) {
 				//System.out.println("deselect time :D");
 				for (int i = 0; i < 7; i++) {
@@ -249,5 +264,10 @@ public class Controller {
 	@FXML
 	public void handleButtonClick() {
 		System.out.println("buttonClick");
+	}
+
+	public void highlightCal(LocalDate day) {
+		calendarController.renderCalendar();
+		
 	}
 }

@@ -1,10 +1,7 @@
 package application.java;
 	
 
-import java.awt.Desktop;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

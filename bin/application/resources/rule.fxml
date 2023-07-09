@@ -23,7 +23,7 @@
 	</top>
 	<center>
 		<TableView fx:id="tableview" onDragDropped="#drop" onDragOver="#dragOver" editable="true"
-			BorderPane.alignment="CENTER">
+			BorderPane.alignment="CENTER" onMouseEntered="#enterTable" onMouseExited="#exitTable" >
 			<columns>
 				<TableColumn fx:id="nameCol" prefWidth="${tableview.width*0.51}" minWidth="60"
 					reorderable="false" resizable="false" text="Name" />

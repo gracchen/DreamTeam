@@ -1,5 +1,6 @@
 package application.java;
 
+import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.Month;
@@ -16,7 +17,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
@@ -32,6 +32,7 @@ public class CalendarController {
 	Month curMonth;
 	int curYear;
 	Controller c;
+	Connect cc;
 	private PauseTransition delay;
 	@FXML
 	void initialize() {
@@ -53,7 +54,7 @@ public class CalendarController {
 				renderCalendar();
 			});
 		});
-		renderCalendar();
+		//renderCalendar();
 	}
 
 	@FXML
@@ -85,7 +86,7 @@ public class CalendarController {
 		renderCalendar();
 	}
 	
-	void renderCalendar() {
+	public void renderCalendar() {
 	    Node node = grid.getChildren().get(0);
 	    grid.getChildren().clear();
 	    grid.getChildren().add(0,node);
@@ -97,6 +98,7 @@ public class CalendarController {
 		Label l1 = new Label("1");
 		if (LocalDate.now().equals(cur))
 			l1.setStyle("-fx-background-color: yellow;");
+		
 
 		l1.setMaxWidth(100000);
 		l1.setMaxHeight(100000);
@@ -112,9 +114,27 @@ public class CalendarController {
 			}
 			c.showCalendarWeek(selected);
 		});
+		
+		if (LocalDate.now().equals(cur))
+		{
+			l1.setStyle("-fx-background-color: yellow;");
+			l1.getStyleClass().add("yellow");
+		}
+		if (LocalDate.now().isBefore(cur)) {
+			cc.runSQL(String.format("select * from MasterTasks where day='%s';", cur));		
+			try {
+				if(cc.rs.next()) {
+					l1.setStyle("-fx-background-color: lightblue;");
+					l1.getStyleClass().add("lightblue");
+				}
+			} catch (SQLException e1) {e1.printStackTrace();}
+		}
+		
 		l1.setOnMouseEntered(e -> {l1.setStyle("-fx-background-color: lightgray;");});
-		l1.setOnMouseExited(e -> {l1.setStyle((LocalDate.now().equals(LocalDate.of(curYear, curMonth, Integer.valueOf(l1.getText()))))? 
-			"-fx-background-color: yellow;": null);});
+
+		l1.setOnMouseExited(e -> {l1.setStyle((l1.getStyleClass().contains("lightblue"))? 
+				"-fx-background-color: lightblue;": (l1.getStyleClass().contains("yellow"))? "-fx-background-color: yellow" : null);});
+		GridPane.setHalignment(l1, HPos.CENTER);
 		
 		for (int i = 1; i < cur.lengthOfMonth(); i++) {
 			if (cur.plusDays(i).getDayOfWeek() == DayOfWeek.MONDAY) {
@@ -122,7 +142,20 @@ public class CalendarController {
 			}
 			Label l = new Label(String.valueOf(i+1));
 			if (LocalDate.now().equals(cur.plusDays(i)))
+			{
 				l.setStyle("-fx-background-color: yellow;");
+				l.getStyleClass().add("yellow");
+			}
+			if (LocalDate.now().isBefore(cur.plusDays(i))) {
+				cc.runSQL(String.format("select * from MasterTasks where day='%s';", cur.plusDays(i)));		
+				try {
+					if(cc.rs.next()) {
+						l.setStyle("-fx-background-color: lightblue;");
+						l.getStyleClass().add("lightblue");
+					}
+				} catch (SQLException e1) {e1.printStackTrace();}
+			}
+				
 			l.setMaxWidth(100000); l.setMaxHeight(100000); l.setAlignment(Pos.CENTER);
 			labels.add(l);
 			l.setOnMouseClicked(e -> {
@@ -134,15 +167,17 @@ public class CalendarController {
 				c.showCalendarWeek(selected);
 			});
 			l.setOnMouseEntered(e -> {l.setStyle("-fx-background-color: lightgray;");});
-			l.setOnMouseExited(e -> {l.setStyle((LocalDate.now().equals(LocalDate.of(curYear, curMonth, Integer.valueOf(l.getText()))))? 
-					"-fx-background-color: yellow;": null);});
+			l.setOnMouseExited(e -> {l.setStyle((l.getStyleClass().contains("lightblue"))? 
+					"-fx-background-color: lightblue;": (l.getStyleClass().contains("yellow"))? "-fx-background-color: yellow" : null);});
 			GridPane.setHalignment(l, HPos.CENTER);
 			grid.add(l,(cur.plusDays(i).getDayOfWeek().getValue()-1),j);
 		}
 	}
 	
-	void setMain(Controller c) {
+	void setMain(Controller c, Connect cc) {
 		this.c = c;
+		this.cc = cc;
+		renderCalendar();
 	}
 	
 	void setLabel() {

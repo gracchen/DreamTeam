@@ -1,7 +1,9 @@
 package application.java;
 
 import java.sql.SQLException;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 import javafx.application.Platform;
@@ -21,6 +23,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
@@ -38,29 +41,22 @@ import javafx.util.converter.IntegerStringConverter;
 
 public class DayController {
 	private Connect c;
-	@FXML
-	private BorderPane dayPane;
-	@FXML
-	private Label header;
+	@FXML private BorderPane dayPane;
+	@FXML private Label header;
 	private StringProperty tableName = new SimpleStringProperty();
-	@FXML
-	private Button addButton;
-	@FXML
-	private Button delButton;
-	@FXML
-	private TableColumn<Task, String> taskCol;
-	@FXML
-	private TableColumn<Task, Integer> percentCol;
-	@FXML
-	private TableView<Task> tableview;
+	@FXML private Button addButton;
+	@FXML private Button delButton;
+	@FXML private TableColumn<Task, String> taskCol;
+	@FXML private TableColumn<Task, Integer> percentCol;
+	@FXML private TableView<Task> tableview;
 	private Main m;
-	private LocalDate day;
-	ObservableList<Task> list = FXCollections.observableArrayList();
-	ObservableList<Task> linkStyledCells = FXCollections.observableArrayList();
+	private LocalDate day, Monday, curMonday;
+	private ObservableList<Task> list = FXCollections.observableArrayList();
+	private ObservableList<Task> linkStyledCells = FXCollections.observableArrayList();
 	private Boolean mouseOut = true;
+	private Controller ctrl;
 
-	@FXML
-	private void initialize() {
+	@FXML private void initialize() {
 		//LAYOUT binding
 
 		//bind task's col width to remaining width of tableview minus percent col (fixed at 30)
@@ -86,9 +82,18 @@ public class DayController {
 		initTable();
 	}
 
-	public void setMain(Main m) {
+	public void setMain(Main m, Controller ctrl) {
 		this.m = m;
+		this.ctrl = ctrl;
 	}
+	
+	public void highlightCal() {
+		if (!Monday.equals(curMonday)) {
+			//System.out.println("highlight cal time!");
+			ctrl.highlightCal(day);
+		}
+	}
+
 	public void deleteMenuID(int menuID) {
 		// Iterate over the rows and select the ones with matching menuID
 		c.runSQL("delete from MasterTasks where menuID = " + menuID);
@@ -101,13 +106,43 @@ public class DayController {
 		list.removeAll(toDelete);
 		deselect();
 	}
+
 	void initTable() {		
 		//set data to display
 		percentCol.setCellValueFactory(new PropertyValueFactory<Task,Integer>("progress"));
 		taskCol.setCellValueFactory(new PropertyValueFactory<Task,String>("name"));
 
 		//set editable using textfield and built in integer conversion
-		percentCol.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
+		percentCol.setCellFactory(column -> new TextFieldTableCell<Task, Integer>(new IntegerStringConverter()) {
+		    @Override
+		    public void updateItem(Integer item, boolean empty) {
+		        super.updateItem(item, empty);
+		        
+		        if (empty || item == null) {
+		            setText(null);
+		        } else {
+		            setText(String.valueOf(item));
+		            
+		            TableRow<Task> row = getTableRow();
+		            if (row != null) {
+		                Task task = row.getItem();
+		                if (task != null) {
+		                    // Perform custom styling or other operations based on task or row data
+		                    if (task.getProgress() < 100 && LocalDate.now().isAfter(day)) {
+		                        setStyle("-fx-text-fill: red;");
+		                    } else if (task.getProgress() == 100){
+		                        setStyle("-fx-text-fill: blue;");
+		                    } else {
+		                    	setStyle("-fx-text-fill: black;");
+		                    }
+		                }
+		            }
+		        }
+		    }
+		});
+
+		//percentCol.setCellFactory(column -> new CustomCell());
+
 		//taskCol.setCellFactory(TextFieldTableCell.<Task>forTableColumn());
 		taskCol.setCellFactory(column -> {
 			TableCell<Task, String> cell = new TableCell<Task, String>() {
@@ -116,7 +151,7 @@ public class DayController {
 
 				@Override
 				public void updateItem(String item, boolean empty) {
-
+					//System.out.println("updateItem!");
 					//handle right click to add that allows user to insert link, then updates tooltip link
 					setOnMouseClicked(event -> {
 						if (!isEmpty() && event.getButton() == MouseButton.SECONDARY) {
@@ -148,9 +183,10 @@ public class DayController {
 						setTooltip(null);
 					} 
 					else {
-						System.out.println("Updating " + item);
+						//System.out.println("Updating " + item);
 						setText(item);
-						String link = getTableView().getItems().get(getIndex()).getLink();
+						Task target = getTableView().getItems().get(getIndex());
+						String link = target.getLink();
 						if (link == null) setTooltip(null);
 						else putLink(link);
 					}
@@ -162,7 +198,7 @@ public class DayController {
 						setTooltip(null); //removes link
 						if (getStyleClass().contains("link")) { //but still styled as a link
 							getStyleClass().removeAll("link");
-							setStyle("");
+							setStyle(null);
 						}
 						return;
 					}
@@ -180,6 +216,7 @@ public class DayController {
 						getStyleClass().add("link");
 						setStyle("-fx-underline: true;");
 					}
+					
 				}
 
 				@Override
@@ -251,7 +288,7 @@ public class DayController {
 		tableview.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 	}
 
-	public void highlight(int menuID) {
+	public void highlightMenu(int menuID) {
 		tableview.getSelectionModel().clearSelection(); // Clear any existing selections
 
 		// Iterate over the rows and select the ones with matching menuID
@@ -266,10 +303,30 @@ public class DayController {
 			}
 		}
 	}
-	public void reset() {
+	
+	public void highlightRule(int ruleID) {
+		tableview.getSelectionModel().clearSelection(); // Clear any existing selections
+
+		// Iterate over the rows and select the ones with matching menuID
+		for (Task rowData : tableview.getItems()) {
+			//System.out.println("matches" + menuID + "? " + rowData.getName() + " " + rowData.getMenuID());
+			if (rowData.getRuleID() == ruleID) {
+				Platform.runLater(new Runnable() {
+					public void run() {
+						tableview.getSelectionModel().select(rowData);
+					}
+				});
+			}
+		}
+	}
+
+	public void resetRules() {
+		c.runSQL(String.format("delete from MasterTasks where ruleID != -1 and day = '%s';", day));
 		tableview.getItems().clear();
+		loadData();
 		tableview.refresh();
 	}
+
 	@FXML
 	public void dragOver(DragEvent event) {
 		if (event.getGestureSource() != tableview && event.getDragboard().hasContent(DataFormat.PLAIN_TEXT))
@@ -285,7 +342,7 @@ public class DayController {
 		if (success) {
 			String src = (String) db.getContent(DataFormat.PLAIN_TEXT);
 			String[] parts = src.split(":", 2);
-			addEntry(parts[1], Integer.valueOf(parts[0]));
+			addEntry(parts[1], Integer.valueOf(parts[0]), -1);
 		}
 		event.setDropCompleted(success);
 		event.consume();
@@ -297,31 +354,29 @@ public class DayController {
 		//int id, String name, int menuID, int progress, String link
 		try {
 			while(c.rs.next()) {
-				list.add(new Task(c.rs.getInt("id"),c.rs.getString("name"), c.rs.getInt("menuID"), c.rs.getInt("progress"), c.rs.getString("link")));
+				list.add(new Task(c.rs.getInt("id"),c.rs.getString("name"), c.rs.getInt("menuID"), c.rs.getInt("ruleID"), c.rs.getInt("progress"), c.rs.getString("link")));
 			}
-		} catch (SQLException e1) {e1.printStackTrace();}
+		} catch (SQLException e1) {System.err.println("dayController.loadData() error :("); e1.printStackTrace();}
 	}
 
-	Boolean addEntry(String name, int menuID) {
-		c.runSQL(String.format("insert into MasterTasks (day, name, menuID, progress) values ('%s','%s','%d','0');", day, name.replaceAll("'", "''"), menuID));	
+	Boolean addEntry(String name, int menuID, int ruleID) {
+		c.runSQL(String.format("insert into MasterTasks (day, name, menuID, ruleID, progress) values ('%s','%s','%d','%d','0');", day, name.replaceAll("'", "''"), menuID, ruleID));	
 		c.runSQL("select * from MasterTasks order by id desc limit 1");	//get id of the last added row
 		try {
 			if (c.rs.next()) {
-				list.add(new Task(c.rs.getInt("id"), name, menuID, 0, null));
+				list.add(new Task(c.rs.getInt("id"), name, menuID, ruleID, 0, null));
 				tableview.scrollTo(list.get(list.size()-1));
+				highlightCal();
 				return true;
 			}
-		} catch (SQLException e1) {e1.printStackTrace();}
+		} catch (SQLException e1) {System.err.println(String.format("dayController.addEntry(%s,%d,%d) error :(", name, menuID, ruleID)); e1.printStackTrace();}
+		
 		return false;
-	}
-
-	Boolean addEntry(String name) {
-		return addEntry(name, -1);
 	}
 
 	@FXML
 	void addClicked(ActionEvent event) {
-		if (addEntry("")) { //if adding successful
+		if (addEntry("", -1, -1)) { //if adding successful
 			deselect();
 			//puts user in edit mode for newly added (last) row's name
 			int lastRowIndex = tableview.getItems().size() - 1;	
@@ -378,6 +433,16 @@ public class DayController {
 
 	void initializeVals(String name, LocalDate day, Connect c) {
 		this.day = day;
+		this.Monday = day;
+		this.curMonday = LocalDate.now();
+		while (!Monday.getDayOfWeek().equals(DayOfWeek.MONDAY)) {
+			Monday = Monday.minusDays(1);
+		}
+		System.out.println("This day's monday is : "+ Monday);
+		while (!curMonday.getDayOfWeek().equals(DayOfWeek.MONDAY)) {
+			curMonday = curMonday.minusDays(1);
+		}
+		System.out.println("Today's monday is : "+ curMonday);
 		tableName.set(name + day); //handle for main controller to tell me what table to pull from
 		this.c = c;
 		loadData();
@@ -387,6 +452,16 @@ public class DayController {
 
 		for (Task task : list) {
 			if (task.getMenuID() == menuID) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	Boolean hasRules() {
+
+		for (Task task : list) {
+			if (task.getRuleID() != -1) {
 				return true;
 			}
 		}
