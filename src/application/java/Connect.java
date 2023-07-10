@@ -34,6 +34,7 @@ public class Connect {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				System.out.print(this.toString() + " ");
 				System.out.println("\"" + query + "\" was successful");
 				return 0;
 			
@@ -41,6 +42,7 @@ public class Connect {
 		else {
 			try {
 				st.executeUpdate(query);
+				System.out.print(this.toString() + " ");
 				System.out.println("\"" + query + "\" was successful");
 				return 0;
 			} catch (SQLException e) {e.printStackTrace(); System.err.println(query + " failed"); return -1;}

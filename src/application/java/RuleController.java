@@ -65,6 +65,9 @@ public class RuleController {
 		initTable();
 	}
 
+	public int getRulesCount() {
+		return list.size();
+	}
 	void initTable() {		
 		//set data to display
 		nameCol.setCellValueFactory(new PropertyValueFactory<Rule,String>("name"));

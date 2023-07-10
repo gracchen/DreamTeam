@@ -39,6 +39,7 @@ public class Main extends Application {
 	    System.out.println("Opening " + link);
 	    
 	}
+	
 	public static void main(String[] args) {		
 		launch(args);
 	}

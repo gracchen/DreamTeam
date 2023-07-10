@@ -5,7 +5,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class Task {
+public class MyTask {
     private IntegerProperty id;
     private StringProperty name;
     private IntegerProperty menuID;
@@ -13,7 +13,7 @@ public class Task {
     private IntegerProperty progress;
     private StringProperty link;
 
-    public Task(int id, String name, int menuID, int ruleID, int progress, String link) {
+    public MyTask(int id, String name, int menuID, int ruleID, int progress, String link) {
         this.id = new SimpleIntegerProperty(id);
         this.name = new SimpleStringProperty(name);
         this.menuID = new SimpleIntegerProperty(menuID);

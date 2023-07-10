@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -14,6 +15,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -58,6 +60,8 @@ public class Controller {
 	Parent[] roots = new Parent[7];
 	Parent[] calRoots = new Parent[7];
 	LocalDate calDay,thisWeek;
+	Task<Void> task; Thread th;
+	@FXML ProgressBar pg;
 	@FXML
 	private void initialize() {
 		System.out.println("initializing....");
@@ -104,7 +108,7 @@ public class Controller {
 		calendarController.setMain(this, c);
 		//ruleController.setMain(this);
 		ruleController.setConnect(c);
-		
+
 		for (int i = 0; i < 7; i++)  {
 			if (controllers[i].hasRules() == false) bigReset(null);
 		}
@@ -146,27 +150,60 @@ public class Controller {
 
 	@FXML
 	public void bigReset(ActionEvent e) {
-		
-		for (int i = 0; i < 7; i++) {
-			controllers[i].resetRules();
-		}
-		
-		c.runSQL("select * from Rules;");
-		List<Rule> a = new LinkedList<Rule>();
-		try {
-			while(c.rs.next()) {
-				a.add(new Rule(c.rs.getInt("id"),c.rs.getString("name"),c.rs.getInt("menuID"),c.rs.getBoolean("mon"), c.rs.getBoolean("tues"), 
-						c.rs.getBoolean("wed"), c.rs.getBoolean("thurs"), c.rs.getBoolean("fri"), c.rs.getBoolean("sat"), c.rs.getBoolean("sun"), c));
-			}
-		} catch (SQLException e1) {e1.printStackTrace();}
-		for (Rule r : a) {
-			if (r.isMon()) controllers[0].addEntry(r.getName(), r.getMenuID(), r.getId());
-			if (r.isTues()) controllers[1].addEntry(r.getName(), r.getMenuID(), r.getId());
-			if (r.isWed()) controllers[2].addEntry(r.getName(), r.getMenuID(), r.getId());
-			if (r.isThurs()) controllers[3].addEntry(r.getName(), r.getMenuID(), r.getId());
-			if (r.isFri()) controllers[4].addEntry(r.getName(),  r.getMenuID(),r.getId());
-			if (r.isSat()) controllers[5].addEntry(r.getName(),  r.getMenuID(),r.getId());
-			if (r.isSun()) controllers[6].addEntry(r.getName(), r.getMenuID(), r.getId());
+		if (task != null && task.isRunning()) {
+			System.out.println("Sorry, please try later.");
+		} else {
+			task = new Task<Void>() {
+				Connect temp = new Connect();
+				@Override
+				protected Void call() throws Exception {
+					long ct = 0;
+					long total = ruleController.getRulesCount() + ruleController.getRulesCount()*7;
+					
+					for (int i = 0; i < 7; i++) total += controllers[i].getNumEntries(); //each resetRules();
+					
+					for (int i = 0; i < 7; i++) {
+						ct += controllers[i].getNumEntries();
+						controllers[i].resetRules(temp);
+						updateProgress(ct,total);
+					}
+
+					temp.runSQL("select * from Rules;");
+					List<Rule> a = new LinkedList<Rule>();
+					try {
+						while(temp.rs.next()) {
+							a.add(new Rule(temp.rs.getInt("id"),temp.rs.getString("name"),temp.rs.getInt("menuID"),temp.rs.getBoolean("mon"), temp.rs.getBoolean("tues"), 
+									temp.rs.getBoolean("wed"), temp.rs.getBoolean("thurs"), temp.rs.getBoolean("fri"), temp.rs.getBoolean("sat"), temp.rs.getBoolean("sun"), null));
+							updateProgress(ct++,total);
+						}
+					} catch (SQLException e1) {e1.printStackTrace();}
+					for (Rule r : a) {
+						if (r.isMon()) controllers[0].sqlAddEntry(r.getName(), r.getMenuID(), r.getId(), temp);
+						updateProgress(ct++,total);
+						if (r.isTues()) controllers[1].sqlAddEntry(r.getName(), r.getMenuID(), r.getId(), temp);
+						updateProgress(ct++,total);
+						if (r.isWed()) controllers[2].sqlAddEntry(r.getName(), r.getMenuID(), r.getId(), temp);
+						updateProgress(ct++,total);
+						if (r.isThurs()) controllers[3].sqlAddEntry(r.getName(), r.getMenuID(), r.getId(), temp);
+						updateProgress(ct++,total);
+						if (r.isFri()) controllers[4].sqlAddEntry(r.getName(),  r.getMenuID(),r.getId(), temp);
+						updateProgress(ct++,total);
+						if (r.isSat()) controllers[5].sqlAddEntry(r.getName(),  r.getMenuID(),r.getId(), temp);
+						updateProgress(ct++,total);
+						if (r.isSun()) controllers[6].sqlAddEntry(r.getName(), r.getMenuID(), r.getId(), temp);
+						updateProgress(ct++,total);
+					}
+					for (int i = 0; i < 7; i++) {
+						controllers[i].loadData(temp);
+					}
+					System.out.println("done" + " progress = " + ct + "/" + total);
+					return null;
+				}
+			};
+			th = new Thread(task);
+			th.setDaemon(true);
+			th.start();
+			pg.progressProperty().bind(task.progressProperty());
 		}
 	}
 
@@ -177,7 +214,7 @@ public class Controller {
 		}
 		ruleController.highlightMenu(menuID);
 	}
-	
+
 	public void highlightRuleID(int ruleID) {
 		System.out.println("highlightMenuID(" + ruleID + ");");
 		for (int i = 0; i < 7; i++) {
@@ -268,6 +305,6 @@ public class Controller {
 
 	public void highlightCal(LocalDate day) {
 		calendarController.renderCalendar();
-		
+
 	}
 }

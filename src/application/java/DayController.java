@@ -3,7 +3,6 @@ package application.java;
 import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 import javafx.application.Platform;
@@ -46,13 +45,12 @@ public class DayController {
 	private StringProperty tableName = new SimpleStringProperty();
 	@FXML private Button addButton;
 	@FXML private Button delButton;
-	@FXML private TableColumn<Task, String> taskCol;
-	@FXML private TableColumn<Task, Integer> percentCol;
-	@FXML private TableView<Task> tableview;
+	@FXML private TableColumn<MyTask, String> taskCol;
+	@FXML private TableColumn<MyTask, Integer> percentCol;
+	@FXML private TableView<MyTask> tableview;
 	private Main m;
 	private LocalDate day, Monday, curMonday;
-	private ObservableList<Task> list = FXCollections.observableArrayList();
-	private ObservableList<Task> linkStyledCells = FXCollections.observableArrayList();
+	private ObservableList<MyTask> list = FXCollections.observableArrayList();
 	private Boolean mouseOut = true;
 	private Controller ctrl;
 
@@ -97,8 +95,8 @@ public class DayController {
 	public void deleteMenuID(int menuID) {
 		// Iterate over the rows and select the ones with matching menuID
 		c.runSQL("delete from MasterTasks where menuID = " + menuID);
-		ObservableList<Task> toDelete = FXCollections.observableArrayList();
-		for (Task rowData : tableview.getItems()) {
+		ObservableList<MyTask> toDelete = FXCollections.observableArrayList();
+		for (MyTask rowData : tableview.getItems()) {
 			if (rowData.getMenuID() == menuID) {
 				toDelete.add(rowData);
 			}
@@ -109,11 +107,11 @@ public class DayController {
 
 	void initTable() {		
 		//set data to display
-		percentCol.setCellValueFactory(new PropertyValueFactory<Task,Integer>("progress"));
-		taskCol.setCellValueFactory(new PropertyValueFactory<Task,String>("name"));
+		percentCol.setCellValueFactory(new PropertyValueFactory<MyTask,Integer>("progress"));
+		taskCol.setCellValueFactory(new PropertyValueFactory<MyTask,String>("name"));
 
 		//set editable using textfield and built in integer conversion
-		percentCol.setCellFactory(column -> new TextFieldTableCell<Task, Integer>(new IntegerStringConverter()) {
+		percentCol.setCellFactory(column -> new TextFieldTableCell<MyTask, Integer>(new IntegerStringConverter()) {
 		    @Override
 		    public void updateItem(Integer item, boolean empty) {
 		        super.updateItem(item, empty);
@@ -123,14 +121,14 @@ public class DayController {
 		        } else {
 		            setText(String.valueOf(item));
 		            
-		            TableRow<Task> row = getTableRow();
+		            TableRow<MyTask> row = getTableRow();
 		            if (row != null) {
-		                Task task = row.getItem();
-		                if (task != null) {
+		                MyTask myTask = row.getItem();
+		                if (myTask != null) {
 		                    // Perform custom styling or other operations based on task or row data
-		                    if (task.getProgress() < 100 && LocalDate.now().isAfter(day)) {
+		                    if (myTask.getProgress() < 100 && LocalDate.now().isAfter(day)) {
 		                        setStyle("-fx-text-fill: red;");
-		                    } else if (task.getProgress() == 100){
+		                    } else if (myTask.getProgress() == 100){
 		                        setStyle("-fx-text-fill: blue;");
 		                    } else {
 		                    	setStyle("-fx-text-fill: black;");
@@ -143,19 +141,20 @@ public class DayController {
 
 		//percentCol.setCellFactory(column -> new CustomCell());
 
-		//taskCol.setCellFactory(TextFieldTableCell.<Task>forTableColumn());
+		//taskCol.setCellFactory(TextFieldTableCell.<MyTask>forTableColumn());
 		taskCol.setCellFactory(column -> {
-			TableCell<Task, String> cell = new TableCell<Task, String>() {
+			TableCell<MyTask, String> cell = new TableCell<MyTask, String>() {
 				private TextField textField;
 				private ToolTip tooltip = new ToolTip("");
 
 				@Override
 				public void updateItem(String item, boolean empty) {
-					//System.out.println("updateItem!");
+					System.out.println("updateItem! line 152");
 					//handle right click to add that allows user to insert link, then updates tooltip link
 					setOnMouseClicked(event -> {
+						System.out.println("updateItem! line 155");
 						if (!isEmpty() && event.getButton() == MouseButton.SECONDARY) {
-							Task target = list.get(getIndex());
+							MyTask target = list.get(getIndex());
 							TextInputDialog dialog = new TextInputDialog(target.getLink());
 							dialog.setTitle("Link Insertion");
 							dialog.setHeaderText("Enter a link:");
@@ -179,16 +178,22 @@ public class DayController {
 					super.updateItem(item, empty);
 
 					if (empty || item == null) {
+						System.out.println("updateItem! line 181");
 						setText(null);
 						setTooltip(null);
+						System.out.println("updateItem! line 184");
 					} 
 					else {
-						//System.out.println("Updating " + item);
+						System.out.println("updateItem! line 187");
 						setText(item);
-						Task target = getTableView().getItems().get(getIndex());
+						System.out.println("updateItem! line 189");
+						MyTask target = getTableView().getItems().get(getIndex());
+						System.out.println("updateItem! line 191");
 						String link = target.getLink();
+						System.out.println("updateItem! line 193");
 						if (link == null) setTooltip(null);
 						else putLink(link);
+						System.out.println("updateItem! line 196");
 					}
 				}
 
@@ -221,44 +226,65 @@ public class DayController {
 
 				@Override
 				public void startEdit() {
+					System.out.println("startEdit(); - line 223");
 					super.startEdit();
 					if (isEmpty()) {
 						return;
 					}
+					System.out.println("startEdit(); - line 227");
 					if (textField == null) {
 						createTextField();
+						System.out.println("startEdit(); - line 230");
 					}
 					textField.setText(getItem()); // Set initial text
+					System.out.println("startEdit(); - line 233");
 					setText(null);
+					System.out.println("startEdit(); - line 235");
 					setGraphic(textField);
+					System.out.println("startEdit(); - line 237");
 					setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+					System.out.println("startEdit(); - line 239");
 					textField.requestFocus();
+					System.out.println("startEdit(); - line 241");
 				}
 
 				@Override
 				public void cancelEdit() {
+					System.out.println("cancelEdit(); - line 246");
 					super.cancelEdit();
+					System.out.println("cancelEdit(); - line 248");
 					setText(getItem());
+					System.out.println("cancelEdit(); - line 250");
 					setGraphic(null);
+					System.out.println("cancelEdit(); - line 252");
 					setContentDisplay(ContentDisplay.TEXT_ONLY);
+					System.out.println("cancelEdit(); - line 254");
 				}
 
 				@Override
 				public void commitEdit(String newValue) {
+					System.out.println("commitEdit("+newValue+"); - line 246");
 					super.commitEdit(newValue);
+					System.out.println("commitEdit("+newValue+"); - line 248");
 					setText(newValue);
+					System.out.println("commitEdit("+newValue+"); - line 250");
 					setGraphic(null);
+					System.out.println("commitEdit("+newValue+"); - line 252");
 					setContentDisplay(ContentDisplay.TEXT_ONLY);
+					System.out.println("commitEdit("+newValue+"); - line 254");
 				}
 
 				private void createTextField() {
+					System.out.println("createTextField(); - line 266");
 					textField = new TextField(getItem());
+					System.out.println("createTextField(); - line 268");
 					textField.setOnKeyPressed(event -> {
 						if (event.getCode() == KeyCode.ENTER) {
 							commitEdit(textField.getText());
 							event.consume();
 						}
 					});
+					System.out.println("createTextField(); - line 275");
 				}
 			};
 			return cell;
@@ -292,7 +318,7 @@ public class DayController {
 		tableview.getSelectionModel().clearSelection(); // Clear any existing selections
 
 		// Iterate over the rows and select the ones with matching menuID
-		for (Task rowData : tableview.getItems()) {
+		for (MyTask rowData : tableview.getItems()) {
 			//System.out.println("matches" + menuID + "? " + rowData.getName() + " " + rowData.getMenuID());
 			if (rowData.getMenuID() == menuID) {
 				Platform.runLater(new Runnable() {
@@ -308,7 +334,7 @@ public class DayController {
 		tableview.getSelectionModel().clearSelection(); // Clear any existing selections
 
 		// Iterate over the rows and select the ones with matching menuID
-		for (Task rowData : tableview.getItems()) {
+		for (MyTask rowData : tableview.getItems()) {
 			//System.out.println("matches" + menuID + "? " + rowData.getName() + " " + rowData.getMenuID());
 			if (rowData.getRuleID() == ruleID) {
 				Platform.runLater(new Runnable() {
@@ -320,11 +346,13 @@ public class DayController {
 		}
 	}
 
-	public void resetRules() {
-		c.runSQL(String.format("delete from MasterTasks where ruleID != -1 and day = '%s';", day));
+	public void resetRules(Connect f) {
+		dayPane.setDisable(true);
+		f.runSQL(String.format("delete from MasterTasks where ruleID != -1 and day = '%s';", day));
 		tableview.getItems().clear();
-		loadData();
+		loadData(f);
 		tableview.refresh();
+		dayPane.setDisable(false);
 	}
 
 	@FXML
@@ -348,25 +376,40 @@ public class DayController {
 		event.consume();
 	}
 
-	void loadData() {
+	void loadData(Connect f) {
+		dayPane.setDisable(true);
 		list.clear();
-		c.runSQL(String.format("select * from MasterTasks where day='%s';", day));		
+		f.runSQL(String.format("select * from MasterTasks where day='%s';", day));		
 		//int id, String name, int menuID, int progress, String link
 		try {
-			while(c.rs.next()) {
-				list.add(new Task(c.rs.getInt("id"),c.rs.getString("name"), c.rs.getInt("menuID"), c.rs.getInt("ruleID"), c.rs.getInt("progress"), c.rs.getString("link")));
+			while(f.rs.next()) {
+				list.add(new MyTask(f.rs.getInt("id"),f.rs.getString("name"), f.rs.getInt("menuID"), f.rs.getInt("ruleID"), f.rs.getInt("progress"), f.rs.getString("link")));
 			}
-		} catch (SQLException e1) {System.err.println("dayController.loadData() error :("); e1.printStackTrace();}
+		} catch (SQLException e1) {System.err.println("dayController.loadData() error :("); e1.printStackTrace();dayPane.setDisable(false);}
+		dayPane.setDisable(false);
+	}
+	
+	void loadData() {
+		loadData(this.c);
 	}
 
+	void sqlAddEntry(String name, int menuID, int ruleID, Connect f) {
+		f.runSQL(String.format("insert into MasterTasks (day, name, menuID, ruleID, progress) values ('%s','%s','%d','%d','0');", day, name.replaceAll("'", "''"), menuID, ruleID));
+	}
+	
 	Boolean addEntry(String name, int menuID, int ruleID) {
+		System.out.println("addEntry: line 401");
 		c.runSQL(String.format("insert into MasterTasks (day, name, menuID, ruleID, progress) values ('%s','%s','%d','%d','0');", day, name.replaceAll("'", "''"), menuID, ruleID));	
 		c.runSQL("select * from MasterTasks order by id desc limit 1");	//get id of the last added row
 		try {
 			if (c.rs.next()) {
-				list.add(new Task(c.rs.getInt("id"), name, menuID, ruleID, 0, null));
+				System.out.println("addEntry: line 406");
+				list.add(new MyTask(c.rs.getInt("id"), name, menuID, ruleID, 0, null));
+				System.out.println("addEntry: line 408");
 				tableview.scrollTo(list.get(list.size()-1));
+				System.out.println("addEntry: line 410");
 				highlightCal();
+				System.out.println("addEntry: line 412");
 				return true;
 			}
 		} catch (SQLException e1) {System.err.println(String.format("dayController.addEntry(%s,%d,%d) error :(", name, menuID, ruleID)); e1.printStackTrace();}
@@ -392,12 +435,12 @@ public class DayController {
 	@FXML
 	void delClicked(ActionEvent event) {
 		if (tableview.getSelectionModel().getSelectedIndices().isEmpty()) return;
-		ObservableList<Task> selectedItems = tableview.getSelectionModel().getSelectedItems();
+		ObservableList<MyTask> selectedItems = tableview.getSelectionModel().getSelectedItems();
 		StringBuilder idList = new StringBuilder(String.valueOf(selectedItems.get(0).getId()));	//start with first id
 		for (int i = 1; i < selectedItems.size(); i++) {
-			Task task = selectedItems.get(i);
+			MyTask myTask = selectedItems.get(i);
 			idList.append(",");
-			idList.append(String.valueOf(task.getId()));
+			idList.append(String.valueOf(myTask.getId()));
 		}
 		c.runSQL(String.format("delete from MasterTasks where id in(%s);", idList));
 		list.removeAll(selectedItems);
@@ -414,7 +457,7 @@ public class DayController {
 
 	public void editMenu(int menuID, String newVal) {
 		c.runSQL("update MasterTasks set name = \'" + newVal.replaceAll("'", "''") + "\' where menuID = " + menuID);
-		for (Task rowData : tableview.getItems()) {
+		for (MyTask rowData : tableview.getItems()) {
 			if (rowData.getMenuID() == menuID) {
 				rowData.setName(newVal);
 				tableview.getSelectionModel().select(rowData);
@@ -438,11 +481,11 @@ public class DayController {
 		while (!Monday.getDayOfWeek().equals(DayOfWeek.MONDAY)) {
 			Monday = Monday.minusDays(1);
 		}
-		System.out.println("This day's monday is : "+ Monday);
+		//System.out.println("This day's monday is : "+ Monday);
 		while (!curMonday.getDayOfWeek().equals(DayOfWeek.MONDAY)) {
 			curMonday = curMonday.minusDays(1);
 		}
-		System.out.println("Today's monday is : "+ curMonday);
+		//System.out.println("Today's monday is : "+ curMonday);
 		tableName.set(name + day); //handle for main controller to tell me what table to pull from
 		this.c = c;
 		loadData();
@@ -450,18 +493,22 @@ public class DayController {
 
 	Boolean hasTask(int menuID) {
 
-		for (Task task : list) {
-			if (task.getMenuID() == menuID) {
+		for (MyTask myTask : list) {
+			if (myTask.getMenuID() == menuID) {
 				return true;
 			}
 		}
 		return false;
 	}
 
+	public int getNumEntries() {
+		return list.size();
+	}
+	
 	Boolean hasRules() {
 
-		for (Task task : list) {
-			if (task.getRuleID() != -1) {
+		for (MyTask myTask : list) {
+			if (myTask.getRuleID() != -1) {
 				return true;
 			}
 		}
