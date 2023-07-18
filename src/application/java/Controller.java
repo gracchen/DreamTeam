@@ -7,12 +7,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ProgressBar;
@@ -62,10 +65,13 @@ public class Controller {
 	LocalDate calDay,thisWeek;
 	Task<Void> task; Thread th;
 	@FXML ProgressBar pg;
+	@FXML Button reset;
 	@FXML
 	private void initialize() {
-		System.out.println("initializing....");
+		//System.out.println("initializing....");
 		//initialize connection to sql database:
+		pg.setVisible(false);
+		pg.setManaged(false);
 		c = new Connect(); //initialize connection w/ database
 
 		//add 7 instances of pane-1
@@ -94,6 +100,7 @@ public class Controller {
 
 		for (int i = 0; i < 7; i++) {
 			controllers[i].initializeVals(weekdays[i], thisWeek.plusDays(i), c);
+			controllers[i].loadData();
 			//controllers[i].setTableName(weekdays[i]);	//names the fxmls so they know which table in charge of
 			//controllers[i].setConnect(c);	//gives each day access to a shared sql connection
 			HBox.setHgrow(roots[i], Priority.ALWAYS); //allow tableview to grow if greater than pref dimensions
@@ -110,7 +117,10 @@ public class Controller {
 		ruleController.setConnect(c);
 
 		for (int i = 0; i < 7; i++)  {
-			if (controllers[i].hasRules() == false) bigReset(null);
+			if (controllers[i].hasRules() == false) {
+				bigReset(null);
+				break;
+			}
 		}
 	}
 
@@ -127,8 +137,22 @@ public class Controller {
 		else {
 			if (calDay.equals(a)) return; //same week do nothing
 		}
+		/*		c.runSQL(String.format("select * FROM MasterTasks WHERE CONCAT(YEAR(day),'-',MONTH(day)) = "
+						+ "'%s-%d' AND DAY(day) >= %d AND DAY(day) < %d order by day;"
+						, a.getYear(),a.getMonth().getValue(), a.getDayOfMonth(), a.getDayOfMonth()+7));
+				try {
+					int prev = -1;
+					ObservableList<MyTask> list = FXCollections.observableArrayList();
+					while (c.rs.next()) {
+						int cur = c.rs.getDate("day").getDate();
+						if (cur != prev) {
+							
+						}
+					}
+				} catch (SQLException e) {e.printStackTrace();}*/
 		for (int i = 0; i < 7; i++) {
 			calControllers[i].initializeVals(weekdays[i], a.plusDays(i),c);
+			calControllers[i].loadData();
 			HBox.setHgrow(calRoots[i], Priority.ALWAYS); //allow tableview to grow if greater than pref dimensions
 		}
 		calDay = a;
@@ -150,61 +174,64 @@ public class Controller {
 
 	@FXML
 	public void bigReset(ActionEvent e) {
-		if (task != null && task.isRunning()) {
-			System.out.println("Sorry, please try later.");
-		} else {
-			task = new Task<Void>() {
-				Connect temp = new Connect();
-				@Override
-				protected Void call() throws Exception {
-					long ct = 0;
-					long total = ruleController.getRulesCount() + ruleController.getRulesCount()*7;
-					
-					for (int i = 0; i < 7; i++) total += controllers[i].getNumEntries(); //each resetRules();
-					
-					for (int i = 0; i < 7; i++) {
-						ct += controllers[i].getNumEntries();
-						controllers[i].resetRules(temp);
-						updateProgress(ct,total);
-					}
+		reset.setDisable(true);
 
-					temp.runSQL("select * from Rules;");
-					List<Rule> a = new LinkedList<Rule>();
-					try {
-						while(temp.rs.next()) {
-							a.add(new Rule(temp.rs.getInt("id"),temp.rs.getString("name"),temp.rs.getInt("menuID"),temp.rs.getBoolean("mon"), temp.rs.getBoolean("tues"), 
-									temp.rs.getBoolean("wed"), temp.rs.getBoolean("thurs"), temp.rs.getBoolean("fri"), temp.rs.getBoolean("sat"), temp.rs.getBoolean("sun"), null));
-							updateProgress(ct++,total);
-						}
-					} catch (SQLException e1) {e1.printStackTrace();}
-					for (Rule r : a) {
-						if (r.isMon()) controllers[0].sqlAddEntry(r.getName(), r.getMenuID(), r.getId(), temp);
-						updateProgress(ct++,total);
-						if (r.isTues()) controllers[1].sqlAddEntry(r.getName(), r.getMenuID(), r.getId(), temp);
-						updateProgress(ct++,total);
-						if (r.isWed()) controllers[2].sqlAddEntry(r.getName(), r.getMenuID(), r.getId(), temp);
-						updateProgress(ct++,total);
-						if (r.isThurs()) controllers[3].sqlAddEntry(r.getName(), r.getMenuID(), r.getId(), temp);
-						updateProgress(ct++,total);
-						if (r.isFri()) controllers[4].sqlAddEntry(r.getName(),  r.getMenuID(),r.getId(), temp);
-						updateProgress(ct++,total);
-						if (r.isSat()) controllers[5].sqlAddEntry(r.getName(),  r.getMenuID(),r.getId(), temp);
-						updateProgress(ct++,total);
-						if (r.isSun()) controllers[6].sqlAddEntry(r.getName(), r.getMenuID(), r.getId(), temp);
-						updateProgress(ct++,total);
-					}
-					for (int i = 0; i < 7; i++) {
-						controllers[i].loadData(temp);
-					}
-					System.out.println("done" + " progress = " + ct + "/" + total);
-					return null;
+		task = new Task<Void>() {
+			Connect temp = new Connect();
+			@Override
+			protected Void call() throws Exception {
+				pg.setVisible(true);
+				pg.setManaged(true);
+				long ct = 0;
+				long total = ruleController.getRulesCount() + ruleController.getRulesCount()*7;
+				
+				for (int i = 0; i < 7; i++) total += controllers[i].getNumEntries(); //each resetRules();
+				
+				for (int i = 0; i < 7; i++) {
+					ct += controllers[i].getNumEntries();
+					controllers[i].resetRules(temp);
+					updateProgress(ct,total);
 				}
-			};
-			th = new Thread(task);
-			th.setDaemon(true);
-			th.start();
-			pg.progressProperty().bind(task.progressProperty());
-		}
+
+				temp.runSQL("select * from Rules;");
+				List<Rule> a = new LinkedList<Rule>();
+				try {
+					while(temp.rs.next()) {
+						a.add(new Rule(temp.rs.getInt("id"),temp.rs.getString("name"),temp.rs.getInt("menuID"),temp.rs.getBoolean("mon"), temp.rs.getBoolean("tues"), 
+								temp.rs.getBoolean("wed"), temp.rs.getBoolean("thurs"), temp.rs.getBoolean("fri"), temp.rs.getBoolean("sat"), temp.rs.getBoolean("sun"), null));
+						updateProgress(ct++,total);
+					}
+				} catch (SQLException e1) {e1.printStackTrace();}
+				for (Rule r : a) {
+					if (r.isMon()) controllers[0].sqlAddEntry(r.getName(), r.getMenuID(), r.getId(), temp);
+					updateProgress(ct++,total);
+					if (r.isTues()) controllers[1].sqlAddEntry(r.getName(), r.getMenuID(), r.getId(), temp);
+					updateProgress(ct++,total);
+					if (r.isWed()) controllers[2].sqlAddEntry(r.getName(), r.getMenuID(), r.getId(), temp);
+					updateProgress(ct++,total);
+					if (r.isThurs()) controllers[3].sqlAddEntry(r.getName(), r.getMenuID(), r.getId(), temp);
+					updateProgress(ct++,total);
+					if (r.isFri()) controllers[4].sqlAddEntry(r.getName(),  r.getMenuID(),r.getId(), temp);
+					updateProgress(ct++,total);
+					if (r.isSat()) controllers[5].sqlAddEntry(r.getName(),  r.getMenuID(),r.getId(), temp);
+					updateProgress(ct++,total);
+					if (r.isSun()) controllers[6].sqlAddEntry(r.getName(), r.getMenuID(), r.getId(), temp);
+					updateProgress(ct++,total);
+				}
+				for (int i = 0; i < 7; i++) {
+					controllers[i].loadData(temp);
+				}
+				System.out.println("done" + " progress = " + ct + "/" + total);
+				reset.setDisable(false);
+				pg.setVisible(false);
+				pg.setManaged(false);
+				return null;
+			}
+		};
+		th = new Thread(task);
+		th.setDaemon(true);
+		th.start();
+		pg.progressProperty().bind(task.progressProperty());
 	}
 
 	public void highlightMenuID(int menuID) {
@@ -215,10 +242,10 @@ public class Controller {
 		ruleController.highlightMenu(menuID);
 	}
 
-	public void highlightRuleID(int ruleID) {
-		System.out.println("highlightMenuID(" + ruleID + ");");
+	public void highlightRuleID(long l) {
+		System.out.println("highlightMenuID(" + l + ");");
 		for (int i = 0; i < 7; i++) {
-			controllers[i].highlightRule(ruleID);
+			controllers[i].highlightRule(l);
 		}
 	}
 
@@ -304,7 +331,13 @@ public class Controller {
 	}
 
 	public void highlightCal(LocalDate day) {
-		calendarController.renderCalendar();
+		System.out.println("highlightCal(" + day + ");");
+		calendarController.highlightCal(day);
 
+	}
+
+	public void unhighlightCal(LocalDate day) {
+		System.out.println("unhighlightCal(" + day + ");");
+		calendarController.unhighlightCal(day);
 	}
 }

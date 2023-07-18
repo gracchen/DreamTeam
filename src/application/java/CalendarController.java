@@ -1,5 +1,6 @@
 package application.java;
 
+import java.sql.Date;
 import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -86,75 +87,23 @@ public class CalendarController {
 		renderCalendar();
 	}
 	
+	@SuppressWarnings("deprecation")
 	public void renderCalendar() {
+		Label today = null;
+		labels.clear();
 	    Node node = grid.getChildren().get(0);
 	    grid.getChildren().clear();
 	    grid.getChildren().add(0,node);
 		LocalDate cur = LocalDate.of(curYear, curMonth, 1);
-		//System.out.println(curMonth + " 1, " + curYear + " is on a " + cur.getDayOfWeek() + " which is " + (cur.getDayOfWeek().getValue()-1));
-		//System.out.println("\tand has " + cur.lengthOfMonth() + " days");
 		
 		int j = 0;
-		Label l1 = new Label("1");
-		if (LocalDate.now().equals(cur))
-			l1.setStyle("-fx-background-color: yellow;");
 		
+		for (int i = 0; i < cur.lengthOfMonth(); i++) {
+			if (cur.plusDays(i).getDayOfWeek() == DayOfWeek.MONDAY && i != 0) j++;
 
-		l1.setMaxWidth(100000);
-		l1.setMaxHeight(100000);
-		l1.setAlignment(Pos.CENTER);
-		grid.add(l1, (cur.getDayOfWeek().getValue()-1), j);
-		GridPane.setHalignment(l1, HPos.CENTER);
-		labels.add(l1);
-		l1.setOnMouseClicked(e -> {
-			System.out.println(curMonth + " " + l1.getText() + ", " + curYear);
-			LocalDate selected = LocalDate.of(curYear,curMonth,Integer.valueOf(l1.getText()));
-			while (selected.getDayOfWeek() != DayOfWeek.MONDAY) {
-				selected = selected.minusDays(1);
-			}
-			c.showCalendarWeek(selected);
-		});
-		
-		if (LocalDate.now().equals(cur))
-		{
-			l1.setStyle("-fx-background-color: yellow;");
-			l1.getStyleClass().add("yellow");
-		}
-		if (LocalDate.now().isBefore(cur)) {
-			cc.runSQL(String.format("select * from MasterTasks where day='%s';", cur));		
-			try {
-				if(cc.rs.next()) {
-					l1.setStyle("-fx-background-color: lightblue;");
-					l1.getStyleClass().add("lightblue");
-				}
-			} catch (SQLException e1) {e1.printStackTrace();}
-		}
-		
-		l1.setOnMouseEntered(e -> {l1.setStyle("-fx-background-color: lightgray;");});
-
-		l1.setOnMouseExited(e -> {l1.setStyle((l1.getStyleClass().contains("lightblue"))? 
-				"-fx-background-color: lightblue;": (l1.getStyleClass().contains("yellow"))? "-fx-background-color: yellow" : null);});
-		GridPane.setHalignment(l1, HPos.CENTER);
-		
-		for (int i = 1; i < cur.lengthOfMonth(); i++) {
-			if (cur.plusDays(i).getDayOfWeek() == DayOfWeek.MONDAY) {
-				j++;
-			}
 			Label l = new Label(String.valueOf(i+1));
-			if (LocalDate.now().equals(cur.plusDays(i)))
-			{
-				l.setStyle("-fx-background-color: yellow;");
-				l.getStyleClass().add("yellow");
-			}
-			if (LocalDate.now().isBefore(cur.plusDays(i))) {
-				cc.runSQL(String.format("select * from MasterTasks where day='%s';", cur.plusDays(i)));		
-				try {
-					if(cc.rs.next()) {
-						l.setStyle("-fx-background-color: lightblue;");
-						l.getStyleClass().add("lightblue");
-					}
-				} catch (SQLException e1) {e1.printStackTrace();}
-			}
+			
+			if (LocalDate.now().equals(cur.plusDays(i))) today = l;
 				
 			l.setMaxWidth(100000); l.setMaxHeight(100000); l.setAlignment(Pos.CENTER);
 			labels.add(l);
@@ -172,6 +121,21 @@ public class CalendarController {
 			GridPane.setHalignment(l, HPos.CENTER);
 			grid.add(l,(cur.plusDays(i).getDayOfWeek().getValue()-1),j);
 		}
+		
+		cc.runSQL(String.format("select distinct day FROM MasterTasks WHERE CONCAT(YEAR(day),'-',MONTH(day)) = '%s-%d' order by day;", curYear, curMonth.getValue()));
+		try {
+			while (cc.rs.next()) {
+				int cur2 = cc.rs.getDate("day").getDate();
+				labels.get(cur2-1).setStyle("-fx-background-color: lightblue;");
+				labels.get(cur2-1).getStyleClass().add("lightblue");
+			}
+		} catch (SQLException e) {e.printStackTrace();}
+		
+		if (today != null) {
+			today.getStyleClass().removeAll("lightblue");
+			today.setStyle("-fx-background-color: yellow;");
+			today.getStyleClass().add("yellow");
+		}
 	}
 	
 	void setMain(Controller c, Connect cc) {
@@ -184,6 +148,21 @@ public class CalendarController {
 		String text = curMonth.toString();
 		text = String.valueOf(text.charAt(0)) + text.substring(1).toLowerCase();
 		monthLabel.setText(text);
+	}
+
+	
+	public void highlightCal(LocalDate day) {
+		if (day.getMonth() == curMonth && !labels.get(day.getDayOfMonth()-1).getStyleClass().contains("lightblue")) {
+			labels.get(day.getDayOfMonth()-1).setStyle("-fx-background-color: lightblue;");
+			labels.get(day.getDayOfMonth()-1).getStyleClass().add("lightblue");
+		}
+	}
+	
+	public void unhighlightCal(LocalDate day) {
+		if (day.getMonth() == curMonth && labels.get(day.getDayOfMonth()-1).getStyleClass().contains("lightblue")) {
+			labels.get(day.getDayOfMonth()-1).setStyle(null);
+			labels.get(day.getDayOfMonth()-1).getStyleClass().removeAll("lightblue");
+		}
 	}
 
 }

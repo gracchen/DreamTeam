@@ -91,6 +91,12 @@ public class DayController {
 			ctrl.highlightCal(day);
 		}
 	}
+	public void unhighlightCal() {
+		if (!Monday.equals(curMonday)) {
+			//System.out.println("highlight cal time!");
+			ctrl.unhighlightCal(day);
+		}
+	}
 
 	public void deleteMenuID(int menuID) {
 		// Iterate over the rows and select the ones with matching menuID
@@ -149,51 +155,49 @@ public class DayController {
 
 				@Override
 				public void updateItem(String item, boolean empty) {
-					System.out.println("updateItem! line 152");
+					//System.out.println(String.format("updateItem(\"%s\",%s);", item, ((empty)? "true" : "false")));
 					//handle right click to add that allows user to insert link, then updates tooltip link
-					setOnMouseClicked(event -> {
-						System.out.println("updateItem! line 155");
-						if (!isEmpty() && event.getButton() == MouseButton.SECONDARY) {
-							MyTask target = list.get(getIndex());
-							TextInputDialog dialog = new TextInputDialog(target.getLink());
-							dialog.setTitle("Link Insertion");
-							dialog.setHeaderText("Enter a link:");
-							Optional<String> result = dialog.showAndWait();
-
-							result.ifPresent(input -> {
-								if (input.length() == 0) {
-									target.setLink(null);
-									c.runSQL(String.format("update MasterTasks set link=NULL where id=%d;", target.getId()));
-									putLink(null);
-								}
-								else {
-									target.setLink(input);
-									c.runSQL(String.format("update MasterTasks set link='%s' where id=%d;", input.replaceAll("'", "''"), target.getId()));
-									putLink(target.getLink());
-								}
-							});
-						}
-					});
 
 					super.updateItem(item, empty);
 
 					if (empty || item == null) {
-						System.out.println("updateItem! line 181");
 						setText(null);
 						setTooltip(null);
-						System.out.println("updateItem! line 184");
+						//System.out.println("updateItem! empty line 184");
 					} 
 					else {
-						System.out.println("updateItem! line 187");
+						//System.out.println("updateItem! nonempty line 187");
 						setText(item);
-						System.out.println("updateItem! line 189");
+						//System.out.println("updateItem! line 189");
 						MyTask target = getTableView().getItems().get(getIndex());
-						System.out.println("updateItem! line 191");
+						//System.out.println("updateItem! line 191");
 						String link = target.getLink();
-						System.out.println("updateItem! line 193");
+						//System.out.println("updateItem! line 193");
 						if (link == null) setTooltip(null);
 						else putLink(link);
-						System.out.println("updateItem! line 196");
+						//System.out.println("updateItem! line 196");
+						setOnMouseClicked(event -> {
+							//System.out.println("updateItem! line 155");
+							if (!isEmpty() && event.getButton() == MouseButton.SECONDARY) {
+								TextInputDialog dialog = new TextInputDialog(target.getLink());
+								dialog.setTitle("Link Insertion");
+								dialog.setHeaderText("Enter a link:");
+								Optional<String> result = dialog.showAndWait();
+
+								result.ifPresent(input -> {
+									if (input.length() == 0) {
+										list.get(getIndex()).setLink(null);
+										c.runSQL(String.format("update MasterTasks set link=NULL where id=%d;", target.getId()));
+										putLink(null);
+									}
+									else {
+										list.get(getIndex()).setLink(input);
+										c.runSQL(String.format("update MasterTasks set link='%s' where id=%d;", input.replaceAll("'", "''"), target.getId()));
+										putLink(target.getLink());
+									}
+								});
+							}
+						});
 					}
 				}
 
@@ -226,65 +230,65 @@ public class DayController {
 
 				@Override
 				public void startEdit() {
-					System.out.println("startEdit(); - line 223");
+					//System.out.println("startEdit(); - line 223");
 					super.startEdit();
 					if (isEmpty()) {
 						return;
 					}
-					System.out.println("startEdit(); - line 227");
+					//System.out.println("startEdit(); - line 227");
 					if (textField == null) {
 						createTextField();
-						System.out.println("startEdit(); - line 230");
+						//System.out.println("startEdit(); - line 230");
 					}
 					textField.setText(getItem()); // Set initial text
-					System.out.println("startEdit(); - line 233");
+					//System.out.println("startEdit(); - line 233");
 					setText(null);
-					System.out.println("startEdit(); - line 235");
+					//System.out.println("startEdit(); - line 235");
 					setGraphic(textField);
-					System.out.println("startEdit(); - line 237");
+					//System.out.println("startEdit(); - line 237");
 					setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-					System.out.println("startEdit(); - line 239");
+					//System.out.println("startEdit(); - line 239");
 					textField.requestFocus();
-					System.out.println("startEdit(); - line 241");
+					//System.out.println("startEdit(); - line 241");
 				}
 
 				@Override
 				public void cancelEdit() {
-					System.out.println("cancelEdit(); - line 246");
+					//System.out.println("cancelEdit(); - line 246");
 					super.cancelEdit();
-					System.out.println("cancelEdit(); - line 248");
+					//System.out.println("cancelEdit(); - line 248");
 					setText(getItem());
-					System.out.println("cancelEdit(); - line 250");
+					//System.out.println("cancelEdit(); - line 250");
 					setGraphic(null);
-					System.out.println("cancelEdit(); - line 252");
+					//System.out.println("cancelEdit(); - line 252");
 					setContentDisplay(ContentDisplay.TEXT_ONLY);
-					System.out.println("cancelEdit(); - line 254");
+					//System.out.println("cancelEdit(); - line 254");
 				}
 
 				@Override
 				public void commitEdit(String newValue) {
-					System.out.println("commitEdit("+newValue+"); - line 246");
+					//System.out.println("commitEdit("+newValue+"); - line 246");
 					super.commitEdit(newValue);
-					System.out.println("commitEdit("+newValue+"); - line 248");
+					//System.out.println("commitEdit("+newValue+"); - line 248");
 					setText(newValue);
-					System.out.println("commitEdit("+newValue+"); - line 250");
+					//System.out.println("commitEdit("+newValue+"); - line 250");
 					setGraphic(null);
-					System.out.println("commitEdit("+newValue+"); - line 252");
+					//System.out.println("commitEdit("+newValue+"); - line 252");
 					setContentDisplay(ContentDisplay.TEXT_ONLY);
-					System.out.println("commitEdit("+newValue+"); - line 254");
+					//System.out.println("commitEdit("+newValue+"); - line 254");
 				}
 
 				private void createTextField() {
-					System.out.println("createTextField(); - line 266");
+					//System.out.println("createTextField(); - line 266");
 					textField = new TextField(getItem());
-					System.out.println("createTextField(); - line 268");
+					//System.out.println("createTextField(); - line 268");
 					textField.setOnKeyPressed(event -> {
 						if (event.getCode() == KeyCode.ENTER) {
 							commitEdit(textField.getText());
 							event.consume();
 						}
 					});
-					System.out.println("createTextField(); - line 275");
+					//System.out.println("createTextField(); - line 275");
 				}
 			};
 			return cell;
@@ -330,13 +334,13 @@ public class DayController {
 		}
 	}
 	
-	public void highlightRule(int ruleID) {
+	public void highlightRule(long l) {
 		tableview.getSelectionModel().clearSelection(); // Clear any existing selections
 
 		// Iterate over the rows and select the ones with matching menuID
 		for (MyTask rowData : tableview.getItems()) {
 			//System.out.println("matches" + menuID + "? " + rowData.getName() + " " + rowData.getMenuID());
-			if (rowData.getRuleID() == ruleID) {
+			if (rowData.getRuleID() == l) {
 				Platform.runLater(new Runnable() {
 					public void run() {
 						tableview.getSelectionModel().select(rowData);
@@ -393,23 +397,23 @@ public class DayController {
 		loadData(this.c);
 	}
 
-	void sqlAddEntry(String name, int menuID, int ruleID, Connect f) {
-		f.runSQL(String.format("insert into MasterTasks (day, name, menuID, ruleID, progress) values ('%s','%s','%d','%d','0');", day, name.replaceAll("'", "''"), menuID, ruleID));
+	void sqlAddEntry(String name, int menuID, long l, Connect f) {
+		f.runSQL(String.format("insert into MasterTasks (day, name, menuID, ruleID, progress) values ('%s','%s','%d','%d','0');", day, name.replaceAll("'", "''"), menuID, l));
 	}
 	
 	Boolean addEntry(String name, int menuID, int ruleID) {
-		System.out.println("addEntry: line 401");
+		//System.out.println("addEntry: line 401");
 		c.runSQL(String.format("insert into MasterTasks (day, name, menuID, ruleID, progress) values ('%s','%s','%d','%d','0');", day, name.replaceAll("'", "''"), menuID, ruleID));	
 		c.runSQL("select * from MasterTasks order by id desc limit 1");	//get id of the last added row
 		try {
 			if (c.rs.next()) {
-				System.out.println("addEntry: line 406");
+				//System.out.println("addEntry: line 406");
 				list.add(new MyTask(c.rs.getInt("id"), name, menuID, ruleID, 0, null));
-				System.out.println("addEntry: line 408");
+				//System.out.println("addEntry: line 408");
 				tableview.scrollTo(list.get(list.size()-1));
-				System.out.println("addEntry: line 410");
+				//System.out.println("addEntry: line 410");
 				highlightCal();
-				System.out.println("addEntry: line 412");
+				//System.out.println("addEntry: line 412");
 				return true;
 			}
 		} catch (SQLException e1) {System.err.println(String.format("dayController.addEntry(%s,%d,%d) error :(", name, menuID, ruleID)); e1.printStackTrace();}
@@ -444,8 +448,15 @@ public class DayController {
 		}
 		c.runSQL(String.format("delete from MasterTasks where id in(%s);", idList));
 		list.removeAll(selectedItems);
+		if (list.isEmpty()) {
+			unhighlightCal();
+		}
 	}   
 
+	void setObservableList(ObservableList<MyTask> l) {
+		this.list = l;
+	}
+	
 	@FXML
 	void enterDayPane(MouseEvent event) {
 		mouseOut = false;
@@ -488,7 +499,7 @@ public class DayController {
 		//System.out.println("Today's monday is : "+ curMonday);
 		tableName.set(name + day); //handle for main controller to tell me what table to pull from
 		this.c = c;
-		loadData();
+		//loadData();
 	}
 
 	Boolean hasTask(int menuID) {

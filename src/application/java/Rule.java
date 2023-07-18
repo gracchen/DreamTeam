@@ -4,11 +4,12 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class Rule {
-    private IntegerProperty id;
+    private SimpleLongProperty id;
     private IntegerProperty menuID;
     private StringProperty name;
     private BooleanProperty mon;
@@ -21,11 +22,11 @@ public class Rule {
     @SuppressWarnings("unused")
 	private Connect c;
     
-    public Rule(int id, String name, int menuID, Boolean mon,
+    public Rule(long id, String name, int menuID, Boolean mon,
     		Boolean tues, Boolean wed, Boolean thurs, Boolean fri, Boolean sat,
     		Boolean sun, Connect c) {
         super();
-        this.id = new SimpleIntegerProperty(id);
+        this.id = new SimpleLongProperty(id);
         this.menuID = new SimpleIntegerProperty(menuID);
         this.name = new SimpleStringProperty(name);
         this.mon = new SimpleBooleanProperty(mon);
@@ -70,11 +71,11 @@ public class Rule {
     }
 
     // id property
-    public IntegerProperty idProperty() {
+    public SimpleLongProperty idProperty() {
         return id;
     }
 
-    public int getId() {
+    public long getId() {
         return id.get();
     }
 
